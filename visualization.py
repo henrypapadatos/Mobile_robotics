@@ -24,7 +24,7 @@ for current_goal in goal:
 
 #define a list with all the obstacles
 obstacle = []
-obstacle.append(np.array( [[10,50], [400,50], [90,200], [50,500]]))
+obstacle.append(np.array( [[10,50], [400,50], [90,200]]))#, [50,500]]))
 obstacle.append(np.array( [[250,350], [400,500], [500,500]]))
 
 # #draw all obsatcle
