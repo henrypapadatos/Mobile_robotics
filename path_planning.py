@@ -120,18 +120,44 @@ class path:
         
         
         
-start = np.array([5,5])
+start = np.array([500,500])
+
+# goal = []
+# goal.append(np.array([450,80]))
+# goal.append(np.array([300,500]))
+# goal.append(np.array([5,500]))
+
+# goal = [[1681,1235], [ 869, 1107], [1565, 310]]
 
 goal = []
-goal.append(np.array([450,80]))
-goal.append(np.array([300,500]))
-goal.append(np.array([5,500]))
+goal.append(np.array([1681,1235]))
+goal.append(np.array([ 869, 1107]))
+goal.append(np.array([1565, 310]))
+           
+# Vertexes:
+# [array([[1235,  784],
+#        [1319, 1102],
+#        [1700,  835]], dtype=int64), array([[ 731,  675],
+#        [ 299,  801],
+#        [ 418, 1059],
+#        [ 790,  809]], dtype=int64), array([[1037,  260],
+#        [ 957,  532],
+#        [1214,  606],
+#        [1294,  334]], dtype=int64)]
+
+
+
+
+# obstacle = []
+# obstacle.append(np.array( [[10,50], [400,50], [90,200], [50,500]]))
+# obstacle.append(np.array( [[250,350], [400,500], [500,500]])) 
 
 obstacle = []
-obstacle.append(np.array( [[10,50], [400,50], [90,200], [50,500]]))
-obstacle.append(np.array( [[250,350], [400,500], [500,500]])) 
+obstacle.append(np.array( [[1235,  784],[1319, 1102],[1700,  835]]))
+obstacle.append(np.array( [[ 731,  675],[ 299,  801],[ 418, 1059],[ 790,  809]])) 
+obstacle.append(np.array( [[1037,  260],[ 957,  532],[1214,  606],[1294,  334]])) 
 
-image = np.zeros((512,512,3), np.uint8)
+image = np.zeros((2000,2000,3), np.uint8)
 
 path.draw(image, start, goal, obstacle)
 
@@ -139,6 +165,7 @@ dist_list, path_list = path.Astar(start, goal, obstacle, True, image)
 
 optimal_path = path.tsp(dist_list, path_list, len(goal)+1, True, image)
    
+image = cv2.resize(image,None, fx=0.5, fy= 0.5, interpolation = cv2.INTER_CUBIC)
 cv2.imshow("Black Rectangle (Color)", image)
 cv2.waitKey(0)
 cv2.destroyAllWindows()  
