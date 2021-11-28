@@ -1,19 +1,6 @@
 import numpy as np
-#from filterpy.kalman import ExtendedKalmanFilter
-
-# =============================================================================
-# dt = 0.05
-# ext_kalman = ExtendedKalmanFilter(dim_x=3, dim_z=1)
-# 
-# #init
-# 
-# ext_kalman.x = np.array([0,0,0])
-# 
-# ext_kalman.F = 
-# =============================================================================
-
 # Description: Extended Kalman Filter example (two-wheeled mobile robot)
- 
+
 # Supress scientific notation when printing NumPy arrays
 np.set_printoptions(precision=3,suppress=True)
  
@@ -138,28 +125,22 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
     return state_estimate_k, P_k
      
 def main():
-    
-    #################### PARAMS ###################
+
+    '''
     #odometry
-    v = 4.5 #(vr + vl)/2 
-    yaw_rate = 0 #(vr + vl)/(2*l)
+    thymio_v_to_mms = 0.34 # (0.3436426116838488 ou  0.333333333)
+    thymio_y_to_mms = 0.06085878507832751
+    offset = 5
     
-    # Create a list of sensor observations at successive timesteps
-    # Each list within z_t is an observation vector.
-    #METTRE VALEURES ELIOT!!
-    z_t = np.array([[4.721,0.143,0.006], # k=1
-                    [9.353,0.284,0.007], # k=2
-                    [14.773,0.422,0.009],# k=3
-                    [18.246,0.555,0.011], # k=4
-                    [22.609,0.715,0.012]])# k=5
+    v_right = thymio_v_to_mms * v_right
+    v_left = thymio_v_to_mms *v_left - offset
     
-    ################################################
+    v = (v_right + v_left)/2
+    yaw_rate = (v_right - v_left)*thymio_y_to_mms
+    '''
  
     # We start at time t=1
     t = 1
-     
-    # Time interval in seconds
-    dt = 1
                      
     # The estimated state vector at time t-1 in the global reference frame.
     # [x_t_minus_1, y_t_minus_1, yaw_t_minus_1]
@@ -173,7 +154,7 @@ def main():
     # Because there is no angular velocity and the robot begins at the 
     # origin with a 0 radians yaw angle, this robot is traveling along 
     # the positive x-axis in the global reference frame.
-    u_t_minus_1 = np.array([v ,yaw_rate])
+    u_t_minus_1 = np.array([0 ,0])
      
     # State covariance matrix P_t_minus_1
     # This matrix has the same number of rows (and columns) as the 
@@ -188,11 +169,11 @@ def main():
     # Start at t=1 and go through each of the 5 sensor observations, 
     # one at a time. 
     # We stop right after timestep t=5 (i.e. the last sensor observation)
-    for t, obs_vector_z_t in enumerate(z_t,start=1):
+    while (goal_list!=0)
         
         # Print the current timestep
         print(f'Timestep t={t}') 
-        print(obs_vector_z_t)
+        print(f'Timestep measurement={obs_vector_z_t}')
          
         # Run the Extended Kalman Filter and store the 
         # near-optimal state and covariance estimates
@@ -211,4 +192,9 @@ def main():
         print()
  
 # Program starts running here with the main method  
-main()
+
+    
+    
+    
+    
+    
