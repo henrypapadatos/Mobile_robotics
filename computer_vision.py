@@ -168,6 +168,8 @@ def vision(image, px_factor):
     
     corners = [(0,0), (0,0)]
     centers = []
+    pose_hidden = np.array([0,0,0])
+    hidden = False
     
     # Extract the red from the img given by the camera 
     img_angle, mask_angle = color_detect(image, low_red, high_red)
@@ -177,7 +179,8 @@ def vision(image, px_factor):
     # Hidden camera condition
     if len(contours) == 0: 
         print('No contours found for goals')
-        return -1
+        hidden = True
+        return pose_hidden, hidden
    
     # From contours of red shapes, approximate polygons and obtain corners
     for cont in contours:
@@ -203,7 +206,7 @@ def vision(image, px_factor):
     diff = [centers[0][0]-centers[1][0], centers[0][1]-centers[1][1]] # Distance between the two shapes 
     angle = math.degrees(np.arctan2(diff[1], diff[0])%(2*np.pi))
     
-    pose = [angle, x*px_factor, y*px_factor] # Return pose of robot as an array
+    pose = np.array([x*px_factor, y*px_factor, angle]) # Return pose of robot as an array
     
-    return pose
+    return pose, hidden
 
