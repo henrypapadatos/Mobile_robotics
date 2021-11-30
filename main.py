@@ -22,7 +22,8 @@ def main():
 
     # Get 1st frame of video 
     ret, frame_init = cap.read()
-    #width, height = frame_init.shape[1], frame1.shape[0]
+    
+    #cv2.imwrite('mettre le path ici', frame_init) POUR TUNING PAR ELIOTT
     
     start_pos, vertexes, goals_pos, px_to_mm = computer_vision.Init(frame_init)
     
