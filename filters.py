@@ -93,6 +93,8 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
             getB(state_estimate_k_minus_1[2],dk)) @ (
             control_vector_k_minus_1) + (
             process_noise_v_k_minus_1)
+                
+    no_cam_state_estimate_k = state_estimate_k
              
     print(f'X_est State Estimate Before EKF={state_estimate_k}')
              
@@ -129,4 +131,4 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
     print(f'X_est State Estimate After EKF={state_estimate_k}')
  
     # Return the updated state and covariance estimates
-    return state_estimate_k, P_k
+    return state_estimate_k, P_k,no_cam_state_estimate_k
