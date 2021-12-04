@@ -20,7 +20,10 @@ CAMERA = 1 # Camera
 def main():
                       
     cap=cv2.VideoCapture(CAMERA ) # Either 0 or 1, front camera or external cam
-
+    
+    cap.set(3,1920)
+    cap.set(4,1080)
+    
     # Get 1st frame of video 
     time.sleep(2)
     
@@ -28,7 +31,7 @@ def main():
     
     cv2.imshow('frame', frame_init)
     
-    #cv2.waitKey(0)
+    cv2.waitKey(0)
     
     cv2.imwrite(r'C:\Users\papad\OneDrive\Images\Pellicule\img.jpg', frame_init) #POUR TUNING PAR ELIOTT
     
@@ -70,18 +73,18 @@ def main():
     #     frame = = computer_vision.get_image(cap)
         
         ###### APPELER get_vision_position##########
-        obs_vector_z_t, hidden_cam = computer_vision.vision(frame, px_to_mm)
+        # obs_vector_z_t, hidden_cam = computer_vision.vision(frame, px_to_mm)
         
-        print(f'Timestep measurement={obs_vector_z_t}')
+        # print(f'Timestep measurement={obs_vector_z_t}')
 
-        # Run the Extended Kalman Filter and store the 
-        # near-optimal state and covariance estimates
-        optimal_state_estimate_t, covariance_estimate_t = filters.ekf(
-            obs_vector_z_t, # Most recent sensor measurement
-            x_est_t_minus_1, # Our most recent estimate of the state
-            u_t_minus_1, # Our most recent control input
-            P_t_minus_1, # Our most recent state covariance matrix
-            dt,hidden_cam,verbose) # Time interval
+        # # Run the Extended Kalman Filter and store the 
+        # # near-optimal state and covariance estimates
+        # optimal_state_estimate_t, covariance_estimate_t = filters.ekf(
+        #     obs_vector_z_t, # Most recent sensor measurement
+        #     x_est_t_minus_1, # Our most recent estimate of the state
+        #     u_t_minus_1, # Our most recent control input
+        #     P_t_minus_1, # Our most recent state covariance matrix
+        #     dt,hidden_cam,verbose) # Time interval
         
     #     if np.linalg.norm(optimal_state_estimate_t-goal_list[0]) < TRESH_DIST:
     #         goal_list.pop(0)

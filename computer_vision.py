@@ -226,13 +226,11 @@ def get_image(cap):
         
         if actual-previous>0.02:
             break
-    x_rezise = 3
-    x_offset = 240  
-    y_rezise = 2.25
-    x = int((380-x_offset)/ x_rezise) 
-    y = int(130/ y_rezise)
-    w = int(910/ y_rezise)
-    h = int(850/ y_rezise)
+
+    x = 380 
+    y = 130
+    w = 910
+    h = 850
     frame = frame[y:y+h, x:x+w]
     return frame
 
