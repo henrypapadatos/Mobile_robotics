@@ -58,7 +58,7 @@ def getB(yaw, deltak):
     return B
  
 def ekf(z_k_observation_vector, state_estimate_k_minus_1, 
-        control_vector_k_minus_1, P_k_minus_1, dk):
+        control_vector_k_minus_1, P_k_minus_1, dk, hidden_cam, verbose = False):
     """
     # Author: Addison Sears-Collins
     # https://automaticaddison.com
@@ -88,47 +88,52 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
     ######################### Predict #############################
     # Predict the state estimate at time k based on the state 
     # estimate at time k-1 and the control input applied at time k-1.
+    if verbose: print(f'Timestep measurement={z_k_observation_vector}')
     state_estimate_k = A_k_minus_1 @ (
             state_estimate_k_minus_1) + (
             getB(state_estimate_k_minus_1[2],dk)) @ (
             control_vector_k_minus_1) + (
             process_noise_v_k_minus_1)
-                
-    no_cam_state_estimate_k = state_estimate_k
+                    
+    if verbose: print(f'X_est State Estimate Before EKF={state_estimate_k}')
+    
+    if not hidden_cam:
+        # Predict the state covariance estimate based on the previous
+        # covariance and some noise
+        P_k = A_k_minus_1 @ P_k_minus_1 @ A_k_minus_1.T + (
+                Q_k)
              
-    print(f'X_est State Estimate Before EKF={state_estimate_k}')
-             
-    # Predict the state covariance estimate based on the previous
-    # covariance and some noise
-    P_k = A_k_minus_1 @ P_k_minus_1 @ A_k_minus_1.T + (
-            Q_k)
-         
-    ################### Update (Correct) ##########################
-    # Calculate the difference between the actual sensor measurements
-    # at time k minus what the measurement model predicted 
-    # the sensor measurements would be for the current timestep k.
-    measurement_residual_y_k = z_k_observation_vector - (
-            (H_k @ state_estimate_k) + (
-            sensor_noise_w_k))
- 
-    print(f'Z Measurements={z_k_observation_vector}')
-             
-    # Calculate the measurement residual covariance
-    S_k = H_k @ P_k @ H_k.T + R_k
-         
-    # Calculate the near-optimal Kalman gain
-    # We use pseudoinverse since some of the matrices might be
-    # non-square or singular.
-    K_k = P_k @ H_k.T @ np.linalg.pinv(S_k)
-         
-    # Calculate an updated state estimate for time k
-    state_estimate_k = state_estimate_k + (K_k @ measurement_residual_y_k)
+        ################### Update (Correct) ##########################
+        # Calculate the difference between the actual sensor measurements
+        # at time k minus what the measurement model predicted 
+        # the sensor measurements would be for the current timestep k.
+        measurement_residual_y_k = z_k_observation_vector - (
+                (H_k @ state_estimate_k) + (
+                sensor_noise_w_k))
      
-    # Update the state covariance estimate for time k
-    P_k = P_k - (K_k @ H_k @ P_k)
-     
-    # Print the best (near-optimal) estimate of the current state of the robot
-    print(f'X_est State Estimate After EKF={state_estimate_k}')
- 
+        if verbose: print(f'Z Measurements={z_k_observation_vector}')
+                 
+        # Calculate the measurement residual covariance
+        S_k = H_k @ P_k @ H_k.T + R_k
+             
+        # Calculate the near-optimal Kalman gain
+        # We use pseudoinverse since some of the matrices might be
+        # non-square or singular.
+        K_k = P_k @ H_k.T @ np.linalg.pinv(S_k)
+             
+        # Calculate an updated state estimate for time k
+        state_estimate_k = state_estimate_k + (K_k @ measurement_residual_y_k)
+         
+        # Update the state covariance estimate for time k
+        P_k = P_k - (K_k @ H_k @ P_k)
+         
+        # Print the best (near-optimal) estimate of the current state of the robot
+        if verbose: print(f'X_est State Estimate After EKF={state_estimate_k}')
+    else:
+        if verbose: print('THE CAMERA IS HIDDEN')
+        P_k = P_k_minus_1
+        
+    if verbose: print(f'covariance_estimate_t={P_k}')
+    if verbose: print()
     # Return the updated state and covariance estimates
-    return state_estimate_k, P_k,no_cam_state_estimate_k
+    return state_estimate_k, P_k

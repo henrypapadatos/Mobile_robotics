@@ -31,7 +31,7 @@ def main():
     
     # The estimated state vector at time t-1 in the global reference frame.
     # [x_t_minus_1, y_t_minus_1, yaw_t_minus_1]
-    x_est_t_minus_1, hidden = computer_vision.vision(frame_init, px_to_mm)
+    x_est_t_minus_1, hidden_cam = computer_vision.vision(frame_init, px_to_mm)
     #x_est_t_minus_1 = np.array([0.0,0.0,0.0])
     
     # The control input vector at time t-1 in the global reference frame.
@@ -45,36 +45,26 @@ def main():
 
 
     #update le dt car sinon kalman marche pas
-    dt = 0 ; #A voir a modifier, Aitana
+    dt = 1 #A voir a modifier, Aitana
+    verbose = True
     
     while len(goal_list)!=0:
         
         ret, frame = cap.read()
         
         ###### APPELER get_vision_position##########
-        obs_vector_z_t, hidden = computer_vision.vision(frame, px_to_mm)
+        obs_vector_z_t, hidden_cam = computer_vision.vision(frame, px_to_mm)
         
         print(f'Timestep measurement={obs_vector_z_t}')
 
-        ####### ADD HIDDEN CONDITION !!!!#############
         # Run the Extended Kalman Filter and store the 
         # near-optimal state and covariance estimates
-        if hidden:
-            #should I pudate covariance or not 
-            _, _, optimal_state_estimate_t= filters.ekf(
-                obs_vector_z_t, # Most recent sensor measurement
-                x_est_t_minus_1, # Our most recent estimate of the state
-                u_t_minus_1, # Our most recent control input
-                P_t_minus_1, # Our most recent state covariance matrix
-                dt) # Time interval
-            print('Camera hidden')
-        else: 
-            optimal_state_estimate_t, covariance_estimate_t, _= filters.ekf(
-                obs_vector_z_t, # Most recent sensor measurement
-                x_est_t_minus_1, # Our most recent estimate of the state
-                u_t_minus_1, # Our most recent control input
-                P_t_minus_1, # Our most recent state covariance matrix
-                dt) # Time interval
+        optimal_state_estimate_t, covariance_estimate_t = filters.ekf(
+            obs_vector_z_t, # Most recent sensor measurement
+            x_est_t_minus_1, # Our most recent estimate of the state
+            u_t_minus_1, # Our most recent control input
+            P_t_minus_1, # Our most recent state covariance matrix
+            dt,hidden_cam,verbose) # Time interval
         
         if np.linalg.norm(optimal_state_estimate_t-goal_list[0]) < TRESH_DIST:
             goal_list.pop(0)
@@ -86,8 +76,6 @@ def main():
         ######APPELER PID##########
         u_t_minus_1 = 0; # delta_v returned by PID
         
-        # Print a blank line
-        print()
     
     cap.release()
     cv2.destroyAllWindows()
