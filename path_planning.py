@@ -113,7 +113,7 @@ def tsp(dist_list, path_list, length, draw = False, image = None):
 
 def get_optimal_path(start, goal, obstacle,conversion_factor = 1, draw = False, image = None):
     
-    dist_list, path_list = Astar(start, goal, obstacle, draw, image)
+    dist_list, path_list = Astar(start, goal, obstacle)
     
     optimal_path = tsp(dist_list, path_list, len(goal)+1, draw, image)
     

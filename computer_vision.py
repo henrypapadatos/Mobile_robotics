@@ -242,8 +242,13 @@ def display_obstacle(image, start, goal, obstacle):
     cv2.fillPoly(image, obstacle, color=(0,0,255))
     return
 
-def display_pos(image,pos,is_from_camera):
-    cv2.circle(image, start,radius=0, color=(0,255,0), thickness=5)
+def display_pos(image, pos, px_to_mm, is_from_camera):
+    if is_from_camera:
+        color = (0,255,0)
+    else:
+        color = (255, 0, 0)
+        
+    cv2.circle(image, pos/px_to_mm, radius=0, color, thickness=5)
     return
         
 
