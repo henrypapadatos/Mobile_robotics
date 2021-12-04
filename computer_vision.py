@@ -51,8 +51,8 @@ def color_detect(pic, low, high):
 
 def goals(pic):
     
-    low_yellow = np.array([200,60,60])
-    high_yellow = np.array([254,255,150])
+    low_yellow = np.array([50,108,0])
+    high_yellow = np.array([110,180,120])
 
     goals_loc = []
     
@@ -77,8 +77,8 @@ def goals(pic):
 
 def obstacles(img):
     
-    low_blue = np.array([45,50,70])
-    high_blue = np.array([80,255,255])
+    low_blue = np.array([0,0,50])
+    high_blue = np.array([60,100,150])
     corners=[]
     new_corners=[]
     centroids=[]
@@ -126,8 +126,8 @@ def pix_to_mm(triangle):
 
 def start(img):
     
-    low_red = np.array([115,20,20]) 
-    high_red = np.array([180,100,150])
+    low_red = np.array([100,0,0]) 
+    high_red = np.array([180,150,100])
     
     corners = [(0,0), (0,0)]
     centers = []
@@ -136,12 +136,15 @@ def start(img):
     img_angle, mask_angle = color_detect(img, low_red, high_red)
     contours, hierarchy = cv2.findContours(mask_angle, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
+    areas = [cv2.contourArea(c) for c in contours]
+    max_cont = max(areas)
+    
     for cont in contours:
         
         epsilon = 0.1 * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
         
-        if(len(approx)==4):
+        if(len(approx)==4 and cv2.contourArea(approx) >= max_cont/2):
             start = centroid(approx)
     
     return start
@@ -163,8 +166,8 @@ def vision(image, px_factor):
     # One shape is enough for position but a second one is needed to determine the angle
     
     # HSV code for the red used
-    low_red = np.array([115,20,20]) 
-    high_red = np.array([180,100,150])
+    low_red = np.array([100,0,0]) 
+    high_red = np.array([180,150,100])
     
     corners = [(0,0), (0,0)]
     centers = []
@@ -175,7 +178,8 @@ def vision(image, px_factor):
     img_angle, mask_angle = color_detect(image, low_red, high_red)
     contours, hierarchy = cv2.findContours(mask_angle, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     #cv2.drawContours(image=img, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
-    
+    areas = [cv2.contourArea(c) for c in contours]
+    max_cont = max(areas)
     # Hidden camera condition
     if len(contours) == 0: 
         print('No contours found for goals')
@@ -185,10 +189,10 @@ def vision(image, px_factor):
     # From contours of red shapes, approximate polygons and obtain corners
     for cont in contours:
         
-        epsilon = 0.1 * cv2.arcLength(cont, True)
+        epsilon = 0.08 * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
         
-        if(len(approx)>2):
+        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/3):
             if(len(approx)==3):
                 corners[0] = approx
             if(len(approx)==4):
