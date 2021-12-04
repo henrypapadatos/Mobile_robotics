@@ -214,3 +214,38 @@ def vision(image, px_factor):
     
     return pose, hidden
 
+def get_image(cap):
+    
+    while True:
+        previous = time.time()
+        ret, frame = cap.read()
+        actual = time.time()
+        
+        if not ret:
+            raise ValueError("Can not read frame")
+        
+        if actual-previous>0.02:
+            break
+    x_rezise = 3
+    x_offset = 240  
+    y_rezise = 2.25
+    x = int((380-x_offset)/ x_rezise) 
+    y = int(130/ y_rezise)
+    w = int(910/ y_rezise)
+    h = int(850/ y_rezise)
+    frame = frame[y:y+h, x:x+w]
+    return frame
+
+def display_obstacle(image, start, goal, obstacle):
+    
+    cv2.circle(image, start,radius=0, color=(0,255,0), thickness=5)
+    for current_goal in goal:
+        cv2.circle(image, current_goal,radius=0, color=(0,255,255), thickness=5)
+    cv2.fillPoly(image, obstacle, color=(0,0,255))
+    return
+
+def display_pos(image,pos,is_from_camera):
+    cv2.circle(image, start,radius=0, color=(0,255,0), thickness=5)
+    return
+        
+
