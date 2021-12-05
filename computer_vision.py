@@ -51,8 +51,8 @@ def color_detect(pic, low, high):
 
 def goals(pic):
     
-    low_yellow = np.array([50,108,0])
-    high_yellow = np.array([110,180,120])
+    low_yellow = np.array([50,100,50])
+    high_yellow = np.array([100,180,100])
 
     goals_loc = []
     
@@ -77,8 +77,8 @@ def goals(pic):
 
 def obstacles(img):
     
-    low_blue = np.array([0,0,50])
-    high_blue = np.array([60,100,150])
+    low_blue = np.array([0,0,40])
+    high_blue = np.array([50,100,150])
     corners=[]
     new_corners=[]
     centroids=[]
@@ -93,7 +93,7 @@ def obstacles(img):
         if(len(approx)>2):
             cv2.drawContours(img, [approx], -1, (255, 0, 0), 2)
             corners.append(approx)
-            if(len(approx) == 3):
+            if(len(approx) == 4): # Use rectangle instead of triangle as there only is one 
                 Pix_to_mm = pix_to_mm(approx)
     
     # From extracted corners, define middle point of each object and create vertex (by 'expanding' corners)
@@ -126,8 +126,8 @@ def pix_to_mm(triangle):
 
 def start(img):
     
-    low_red = np.array([100,0,0]) 
-    high_red = np.array([180,150,100])
+    low_red = np.array([110,0,0]) 
+    high_red = np.array([180,150,95])
     
     corners = [(0,0), (0,0)]
     centers = []
@@ -166,8 +166,8 @@ def vision(image, px_factor):
     # One shape is enough for position but a second one is needed to determine the angle
     
     # HSV code for the red used
-    low_red = np.array([100,0,0]) 
-    high_red = np.array([180,150,100])
+    low_red = np.array([110,0,0]) 
+    high_red = np.array([180,150,95])
     
     corners = [(0,0), (0,0)]
     centers = []
