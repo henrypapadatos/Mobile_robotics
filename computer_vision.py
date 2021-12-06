@@ -39,9 +39,9 @@ def expand(centroid, vertexes, px_factor):
 
 def color_detect(pic, low, high):
     
-    image=cv2.cvtColor(pic, cv2.COLOR_BGR2HSV) 
-    mask=cv2.inRange(pic, low, high)
     image=cv2.blur(pic, (5, 5))
+    image=cv2.cvtColor(pic, cv2.COLOR_BGR2HSV) 
+    mask=cv2.inRange(image, low, high)
     mask=cv2.erode(mask, None, iterations=4)
     mask=cv2.dilate(mask, None, iterations=4)
     
@@ -51,8 +51,8 @@ def color_detect(pic, low, high):
 
 def goals(pic):
     
-    low_yellow = np.array([50,100,50])
-    high_yellow = np.array([100,180,100])
+    low_yellow = np.array([50,50,50])
+    high_yellow = np.array([70,255,255])
 
     goals_loc = []
     
@@ -77,8 +77,8 @@ def goals(pic):
 
 def obstacles(img):
     
-    low_blue = np.array([0,0,40])
-    high_blue = np.array([50,100,150])
+    low_blue = np.array([5,50,40])
+    high_blue = np.array([20,255,255])
     corners=[]
     new_corners=[]
     centroids=[]
@@ -108,13 +108,13 @@ def obstacles(img):
 
     return new_corners, Pix_to_mm, img_obst
 
-def pix_to_mm(triangle):
+def pix_to_mm(rectangle):
     
     len_in_px = 0
-    len_in_mm = 30 # To define...
+    len_in_mm = 113 # lenght of one side of the cube in mm
     
-    for corn1 in triangle:
-        for corn2 in triangle:
+    for corn1 in rectangle:
+        for corn2 in rectangle:
             if(np.any(corn1 != corn2)):
                 dist = math.dist(corn1[0], corn2[0])
                 if(dist > len_in_px):
@@ -126,8 +126,8 @@ def pix_to_mm(triangle):
 
 def start(img):
     
-    low_red = np.array([110,0,0]) 
-    high_red = np.array([180,150,95])
+    low_red = np.array([115,50,50]) 
+    high_red = np.array([130,255,255])
     
     corners = [(0,0), (0,0)]
     centers = []
@@ -166,8 +166,8 @@ def vision(image, px_factor):
     # One shape is enough for position but a second one is needed to determine the angle
     
     # HSV code for the red used
-    low_red = np.array([110,0,0]) 
-    high_red = np.array([180,150,95])
+    low_red = np.array([115,50,50]) 
+    high_red = np.array([130,255,255])
     
     corners = [(0,0), (0,0)]
     centers = []
@@ -216,6 +216,8 @@ def vision(image, px_factor):
 
 def get_image(cap):
     
+    cap=cv2.cvtColor(cap, cv2.COLOR_RGB2BGR)
+
     while True:
         previous = time.time()
         ret, frame = cap.read()
