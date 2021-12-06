@@ -246,11 +246,11 @@ def display_obstacle(image, start, goal, obstacle):
 
 def display_pos(image, pos, px_to_mm, is_from_camera):
     if is_from_camera:
-        color = (0,255,0)
+        cv2.circle(image, pos/px_to_mm, radius=0, color=(0,255,0), thickness=5)
     else:
-        color = (255, 0, 0)
+        cv2.circle(image, pos/px_to_mm, radius=0, color=(255,0,0), thickness=5)
         
-    cv2.circle(image, pos/px_to_mm, radius=0, color, thickness=5)
+    
     return
         
 
