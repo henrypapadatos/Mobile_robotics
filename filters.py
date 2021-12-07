@@ -147,7 +147,7 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
     # Return the updated state and covariance estimates
     return state_estimate_k, P_k
 
-def pid(pos_robot, goal_pos, sum_error, alt_error_pid,verbose = False):
+def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt,verbose = False):
     
     if verbose: print("y:", pos_robot[1]-goal_pos[1])
     if verbose: print("x:", pos_robot[0]-goal_pos[0])
@@ -162,7 +162,7 @@ def pid(pos_robot, goal_pos, sum_error, alt_error_pid,verbose = False):
     
     if verbose: print("Error_angle:",error)
     
-    #disables the PID regulator if the error is to small
+    #disables the PID regulator if the error is to small 
     #this avoids to always move as we cannot exactly be where we want and
     #the camera is a bit noisy
     # if abs(error) < ERROR_THRESHOLD:
@@ -177,7 +177,7 @@ def pid(pos_robot, goal_pos, sum_error, alt_error_pid,verbose = False):
         sum_error = -MAX_SUM_ERROR
     	
     
-    speed = KP_1 * error + KI_1 * sum_error + KD_1 * ((error - alt_error_pid)/PI_CLOCK)
+    speed = KP_1 * error + KI_1 * sum_error + KD_1 * ((error - alt_error_pid)/dt)
     
     if error > DEG_LIM:
         v_l = speed
