@@ -16,6 +16,9 @@ import path_planning
 
 TRESH_DIST = 3 #mm
 CAMERA = 0 # Camera
+SPEED_TO_MMS = 0.3436 #150 speed
+YAW_TO_MMS = 0.06086 # -100 100
+
 
 def main():
          
@@ -80,8 +83,9 @@ def main():
     
     
         #update le dt car sinon kalman marche pas
-        dt = 1 #A voir a modifier, Aitana
-        verbose = True
+        dt = 1 # EN SECONDES POUR KALMAN!!!!! same as PI_CLOCK of pid defined in filters?
+        sum_error = 0 
+        alt_error_pid = 0
         
         while len(goal_list)!=0:
             
@@ -105,7 +109,7 @@ def main():
                 x_est_t_minus_1, # Our most recent estimate of the state
                 u_t_minus_1, # Our most recent control input
                 P_t_minus_1, # Our most recent state covariance matrix
-                dt,hidden_cam,verbose) # Time interval
+                dt,hidden_cam) # Time interval
             
             computer_vision.display_pos(frame, optimal_state_estimate_t[0:1], is_from_camera = False)
             
@@ -122,7 +126,11 @@ def main():
             
             #if no
             ######APPELER PID##########
-            u_t_minus_1 = 0; # delta_v returned by PID
+            # sum_error, alt_error_pid, v_l,v_d = filters.pid(optimal_state_estimate_t,goal_list,sum_error, alt_error_pid,dt)
+            # v = (v_l + v_d)*SPEED_TO_MMS/2
+            # yaw = (v_d - v_l)*YAW_TO_MMS
+            # u_t_minus_1 = [v, yaw]; # delta_v returned by PID
+            u_t_minus_1 = 0;
             
             #if yes, obstacle avoidance 
             

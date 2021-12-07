@@ -5,6 +5,15 @@ Created on Sun Nov 28 18:23:37 2021
 @author: Aitana Waelbroeck Boix
 """
 import numpy as np
+import math
+
+MAX_SUM_ERROR = 50
+KP_1 = 1
+KI_1 = 0.05
+KD_1 = 0
+PI_CLOCK = 0.1
+DEG_LIM = 65
+SPEED_AVG = 150
 
 # Description: Extended Kalman Filter example (two-wheeled mobile robot)
 
@@ -137,3 +146,63 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
     if verbose: print()
     # Return the updated state and covariance estimates
     return state_estimate_k, P_k
+
+def pid(pos_robot, goal_pos, sum_error, alt_error_pid,verbose = False):
+    
+    if verbose: print("y:", pos_robot[1]-goal_pos[1])
+    if verbose: print("x:", pos_robot[0]-goal_pos[0])
+    
+    angle_rad = np.arctan2(pos_robot[1]-goal_pos[1],pos_robot[0]-goal_pos[0])
+
+    if verbose: print("Robot_goal_angle:", math.degrees(angle_rad))
+    if verbose: print("Robot_angle:",360-pos_robot[2])
+    
+    #calculer le delta error angle
+    error = 360-(pos_robot[2]+math.degrees(angle_rad%(2*np.pi)))
+    
+    if verbose: print("Error_angle:",error)
+    
+    #disables the PID regulator if the error is to small
+    #this avoids to always move as we cannot exactly be where we want and
+    #the camera is a bit noisy
+    # if abs(error) < ERROR_THRESHOLD:
+    #     return 0
+    
+    sum_error = sum_error + error
+    
+    #we set a maximum and a minimum for the sum to avoid an uncontrolled growth
+    if sum_error > MAX_SUM_ERROR:
+        sum_error = MAX_SUM_ERROR
+    elif sum_error < -MAX_SUM_ERROR:
+        sum_error = -MAX_SUM_ERROR
+    	
+    
+    speed = KP_1 * error + KI_1 * sum_error + KD_1 * ((error - alt_error_pid)/PI_CLOCK)
+    
+    if error > DEG_LIM:
+        v_l = speed
+        v_d= -speed
+        if verbose: print("Turning only, speed l and r:",v_l,v_d)
+    else:
+        v_l = SPEED_AVG + speed
+        v_d = SPEED_AVG -speed
+        if verbose: print("Moving and turning, speed l and r:",v_l,v_d)
+    
+    if verbose: print("Sum_error, Alt_error_pid:", sum_error,alt_error_pid)
+    
+    return sum_error, error, v_l, v_d
+
+
+###### How to call PID ######
+
+# def main ():
+#     sum_error = 0 
+#     alt_error_pid = 0 
+#     pos_robot= [2,1,300]
+#     goal_pos = [6,3]
+
+#     speed,sum_error, alt_error_pid, v_l,v_d = pid(pos_robot,goal_pos,sum_error, alt_error_pid)
+
+# main()
+
+###############################
