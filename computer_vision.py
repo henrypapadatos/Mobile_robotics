@@ -39,12 +39,17 @@ def expand(centroid, vertexes, px_factor):
 
 def color_detect(pic, low, high):
     
+    #cv2.imshow('color detect', pic)
+    #cv2.waitKey(0)
     image=cv2.blur(pic, (5, 5))
-    image=cv2.cvtColor(pic, cv2.COLOR_BGR2HSV) 
+    image=cv2.cvtColor(pic, cv2.COLOR_RGB2HSV) 
+    #cv2.imshow('color detect', image)
+    #cv2.waitKey(0)
     mask=cv2.inRange(image, low, high)
     mask=cv2.erode(mask, None, iterations=4)
     mask=cv2.dilate(mask, None, iterations=4)
-    
+    #cv2.imshow('color detect', mask)
+    #cv2.waitKey(0)
     color_img =cv2.bitwise_and(pic, pic, mask=mask)
     
     return color_img, mask
@@ -86,7 +91,8 @@ def obstacles(img):
     img_obst, mask_obst = color_detect(img, low_blue, high_blue)
     contours, hierarchy = cv2.findContours(mask_obst, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     #cv2.drawContours(image=img2, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
-    
+    # cv2.imshow('mask obst', mask_obst)
+    # cv2.waitKey(0)
     for cont in contours:
         epsilon = 0.08 * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
@@ -137,10 +143,13 @@ def start(img):
     contours, hierarchy = cv2.findContours(mask_angle, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     areas = [cv2.contourArea(c) for c in contours]
-    max_cont = max(areas)
+    
     if not areas:
         cv2.imshow('mask', mask_angle)
+        cv2.waitKey(0)
         raise ValueError("Can not read frame")
+        
+    max_cont = max(areas)
     
     for cont in contours:
         
@@ -230,12 +239,12 @@ def get_image(cap):
         if actual-previous>0.02:
             break
 
-    x = 0 
-    y = 300
-    w = 1090
+    x = 200 
+    y = 0
+    w = 1400
     h = 1080
-    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-    # frame = frame[y:y+h, x:x+w]
+    #frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    frame = frame[y:y+h, x:x+w]
     return frame
 
 def display_obstacle(image, start, goal, obstacle):

@@ -35,10 +35,10 @@ def main():
         print("take the rigth image")
         frame_init = computer_vision.get_image(cap)
         
-        frame_init = cv2.cvtColor(frame_init, cv2.COLOR_BGR2RGB)
-        frame_init = cv2.resize(frame_init,None, fx=0.5, fy= 0.5, interpolation = cv2.INTER_CUBIC)
+        #frame_init = cv2.cvtColor(frame_init, cv2.COLOR_BGR2RGB)
+        frame_init_crop = cv2.resize(frame_init,None, fx=0.5, fy= 0.5, interpolation = cv2.INTER_CUBIC)
 
-        cv2.imshow('frame', frame_init)
+        cv2.imshow('frame', frame_init_crop)
         
         cv2.waitKey(0)
         
@@ -49,9 +49,13 @@ def main():
         
         computer_vision.display_obstacle(frame_init, start_pos, goals_pos, obst_vertexes)
         
-        cv2.imshow('frame', frame_init)
+        frame_init_crop = cv2.resize(frame_init,None, fx=0.5, fy= 0.5, interpolation = cv2.INTER_CUBIC)
+        
+        cv2.imshow('frame', frame_init_crop)
         
         cv2.waitKey(0)
+        
+        cv2.imwrite(r'C:\Users\papad\OneDrive\Images\Pellicule\img_obstacle.jpg', frame_init) #POUR TUNING PAR ELIOTT
         
         goal_list = path_planning.get_optimal_path(start_pos, goals_pos, obst_vertexes, 
                                                    px_to_mm, draw = True, image = frame_init)
