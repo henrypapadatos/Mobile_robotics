@@ -215,8 +215,6 @@ def vision(image, px_factor):
     return pose, hidden
 
 def get_image(cap):
-    
-    cap=cv2.cvtColor(cap, cv2.COLOR_RGB2BGR)
 
     while True:
         previous = time.time()
@@ -233,7 +231,8 @@ def get_image(cap):
     y = 130
     w = 910
     h = 850
-    frame = frame[y:y+h, x:x+w]
+    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    #frame = frame[y:y+h, x:x+w]
     return frame
 
 def display_obstacle(image, start, goal, obstacle):
