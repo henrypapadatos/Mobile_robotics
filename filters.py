@@ -8,12 +8,11 @@ import numpy as np
 import math
 
 MAX_SUM_ERROR = 50
-KP_1 = 1
-KI_1 = 0.05
-KD_1 = 0
-PI_CLOCK = 0.1
-DEG_LIM = 65
-SPEED_AVG = 150
+KP_1 = 0.5
+KI_1 = 0.0
+KD_1 = 0.0
+DEG_LIM = 30
+SPEED_AVG = 50
 
 # Description: Extended Kalman Filter example (two-wheeled mobile robot)
 
@@ -26,7 +25,7 @@ A_k_minus_1 = np.array([[1.0,  0,   0],
                        [  0,   0, 1.0]])
 
 # 
-process_noise_v_k_minus_1 = np.array([1.0,1.0,0.003])
+process_noise_v_k_minus_1 = np.array([1.0,1.0,1.00])
      
 # State model noise covariance matrix Q_k
 Q_k = np.array([[1.0,   0,   0],
@@ -61,7 +60,7 @@ def getB(yaw, deltak):
     :param yaw: The yaw angle (rotation angle around the z axis) in rad 
     :param deltak: The change in time from time step k-1 to k in sec
     """
-    B = np.array([  [np.cos(yaw)*deltak, 0],
+    B = np.array([  [-np.cos(yaw)*deltak, 0],
                     [np.sin(yaw)*deltak, 0],
                     [0, deltak]])
     return B
@@ -150,15 +149,20 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
 def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt, verbose = False):
     print("pos robot is: ", pos_robot)
     
-    if verbose: print("y:", pos_robot[1]-goal_pos[1])
-    if verbose: print("x:", pos_robot[0]-goal_pos[0])
+    if verbose: print("y:", goal_pos[1]-pos_robot[1])
+    if verbose: print("x:", goal_pos[0]-pos_robot[0])
     
-    angle_rad = np.arctan2(pos_robot[1]-goal_pos[1],pos_robot[0]-goal_pos[0])
+    angle_rad = np.arctan2(goal_pos[1]-pos_robot[1],goal_pos[0]-pos_robot[0])
+    
+    angle_robot = 360-pos_robot[2]
 
-    if verbose: print("Robot_angle:",360-pos_robot[2])
+    if verbose: print("Robot_angle:",angle_robot)
     
+    angle_goal = math.degrees(angle_rad%(2*np.pi));
     #calculer le delta error angle
-    error = 360-(pos_robot[2]+math.degrees(angle_rad%(2*np.pi)))
+    error = angle_robot+angle_goal
+    
+    if verbose: print("angle goal: ", angle_goal)
     
     if verbose: print("Error_angle:",error)
     
@@ -180,13 +184,13 @@ def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt, verbose = False):
     
     speed = KP_1 * error + KI_1 * sum_error + KD_1 * ((error - alt_error_pid)/dt)
     
-    if error > DEG_LIM:
+    if abs(error) > DEG_LIM:
         v_l = speed
-        v_d= -speed
+        v_d= - speed
         if verbose: print("Turning only, speed l and r:",v_l,v_d)
     else:
         v_l = SPEED_AVG + speed
-        v_d = SPEED_AVG -speed
+        v_d = SPEED_AVG - speed
         if verbose: print("Moving and turning, speed l and r:",v_l,v_d)
     
     if verbose: print("Sum_error, Alt_error_pid:", sum_error,alt_error_pid)

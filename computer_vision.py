@@ -197,17 +197,17 @@ def vision(image, px_factor):
     
     areas = [cv2.contourArea(c) for c in contours]
     
-    if len(areas) == 0:
+    if not areas:
         hidden = True
-        print('Robot not seen by camera')
-        return pose_hidden, hidden
+        print('Robot not seen by camera1')
+        return pose_hidden, hidden, mask_angle
         
     max_cont = max(areas)
     # Hidden camera condition
     if len(contours) == 0: 
-        print('Robot not seen by camera')
+        print('Robot not seen by camera2')
         hidden = True
-        return pose_hidden, hidden
+        return pose_hidden, hidden, mask_angle
     
     # print("new_measure")
     
@@ -221,19 +221,22 @@ def vision(image, px_factor):
         approx = cv2.approxPolyDP(cont, epsilon, True)
         # print(approx)
         
-        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/2):
+        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/6):
             if(len(approx)==3):
                 corners[0] = approx
                 triangle_found=1
+                # print('triangle')
             if(len(approx)==4):
                 corners[1] = approx
                 square_found=1
+                # print('rectangle')
     
     # if corners[0][0]+corners[0][1]==0 or corners[1][0]+corners[1][1]==0:
     if square_found == 0 or triangle_found == 0:
+        # print(approx)
         hidden = True
-        print('Robot not seen by camera')
-        return pose_hidden, hidden
+        print('Robot not seen by camera3')
+        return pose_hidden, hidden, mask_angle
     
     # From corners, get centers
     for i in range(0, len(corners)):
@@ -249,7 +252,7 @@ def vision(image, px_factor):
     
     pose = np.array([x*px_factor, y*px_factor, angle]) # Return pose of robot as an array
     
-    return pose, hidden
+    return pose, hidden, mask_angle
 
 def get_image(cap):
 
@@ -284,11 +287,13 @@ def display_pos(image, pos, px_to_mm, hidden_cam, is_from_camera):
         return
     posa = np.array([pos[0],pos[1]])
     posa = np.int0(posa/px_to_mm).tolist()
-    print('posa :', posa, type(posa))
-    if is_from_camera:
+    # print('posa :', posa, type(posa))
+    if is_from_camera ==1:
         # print(pos/px_to_mm)
         # print("camera sees the robot location in: ", posa)
         cv2.circle(image, posa, radius=0, color=(0,255,0), thickness=5)
+    if is_from_camera ==2:
+        cv2.circle(image, posa, radius=0, color=(0,0,0), thickness=5)
     else:
         cv2.circle(image, posa, radius=0, color=(255,0,0), thickness=5)
         
