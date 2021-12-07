@@ -194,28 +194,46 @@ def vision(image, px_factor):
     
     contours, hierarchy = cv2.findContours(mask_angle, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     #cv2.drawContours(image=img, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+    
     areas = [cv2.contourArea(c) for c in contours]
+    
+    if len(areas) == 0:
+        hidden = True
+        print('Robot not seen by camera')
+        return pose_hidden, hidden
+        
     max_cont = max(areas)
     # Hidden camera condition
     if len(contours) == 0: 
-        print('No contours found for goals')
+        print('Robot not seen by camera')
         hidden = True
         return pose_hidden, hidden
     
-    print("new_measure")
+    # print("new_measure")
+    
+    triangle_found=0
+    square_found=0
    
     # From contours of red shapes, approximate polygons and obtain corners
     for cont in contours:
         
         epsilon = 0.08 * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
-        print(approx)
+        # print(approx)
         
         if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/2):
             if(len(approx)==3):
                 corners[0] = approx
+                triangle_found=1
             if(len(approx)==4):
                 corners[1] = approx
+                square_found=1
+    
+    # if corners[0][0]+corners[0][1]==0 or corners[1][0]+corners[1][1]==0:
+    if square_found == 0 or triangle_found == 0:
+        hidden = True
+        print('Robot not seen by camera')
+        return pose_hidden, hidden
     
     # From corners, get centers
     for i in range(0, len(corners)):
@@ -224,7 +242,6 @@ def vision(image, px_factor):
             centers.append(center_rect)
             (x,y) = center_rect # Center of the robot is the center of the red rectangle
         else:
-            print("corners is: ", corners[i])
             centers.append(centroid(corners[i]))
 
     diff = [centers[0][0]-centers[1][0], centers[0][1]-centers[1][1]] # Distance between the two shapes 
@@ -262,14 +279,15 @@ def display_obstacle(image, start, goal, obstacle):
     cv2.fillPoly(image, obstacle, color=(0,0,255))
     return
 
-def display_pos(image, pos, px_to_mm, is_from_camera):
-    if len(pos) != 0:
+def display_pos(image, pos, px_to_mm, hidden_cam, is_from_camera):
+    if hidden_cam:
         return
     posa = np.array([pos[0],pos[1]])
     posa = np.int0(posa/px_to_mm).tolist()
     print('posa :', posa, type(posa))
     if is_from_camera:
         # print(pos/px_to_mm)
+        # print("camera sees the robot location in: ", posa)
         cv2.circle(image, posa, radius=0, color=(0,255,0), thickness=5)
     else:
         cv2.circle(image, posa, radius=0, color=(255,0,0), thickness=5)

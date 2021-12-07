@@ -26,7 +26,7 @@ A_k_minus_1 = np.array([[1.0,  0,   0],
                        [  0,   0, 1.0]])
 
 # 
-process_noise_v_k_minus_1 = np.array([0.01,0.01,0.003])
+process_noise_v_k_minus_1 = np.array([1.0,1.0,0.003])
      
 # State model noise covariance matrix Q_k
 Q_k = np.array([[1.0,   0,   0],
