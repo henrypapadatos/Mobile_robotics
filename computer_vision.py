@@ -166,7 +166,6 @@ def start(img):
     
 def Init(image):
     
-    print("test2")
     start_pos = start(image)
     vertexes, px_to_mm, img_obst = obstacles(image)
     goals_pos, img_goals = goals(image)
@@ -189,6 +188,10 @@ def vision(image, px_factor):
     
     # Extract the red from the img given by the camera 
     img_angle, mask_angle = color_detect(image, low_red, high_red)
+    
+    # cv2.imshow('mask', mask_angle)
+    # cv2.waitKey(0)
+    
     contours, hierarchy = cv2.findContours(mask_angle, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     #cv2.drawContours(image=img, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
     areas = [cv2.contourArea(c) for c in contours]
@@ -198,14 +201,17 @@ def vision(image, px_factor):
         print('No contours found for goals')
         hidden = True
         return pose_hidden, hidden
+    
+    print("new_measure")
    
     # From contours of red shapes, approximate polygons and obtain corners
     for cont in contours:
         
-        epsilon = 0.05 * cv2.arcLength(cont, True)
+        epsilon = 0.08 * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
+        print(approx)
         
-        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/3):
+        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/2):
             if(len(approx)==3):
                 corners[0] = approx
             if(len(approx)==4):
@@ -218,6 +224,7 @@ def vision(image, px_factor):
             centers.append(center_rect)
             (x,y) = center_rect # Center of the robot is the center of the red rectangle
         else:
+            print("corners is: ", corners[i])
             centers.append(centroid(corners[i]))
 
     diff = [centers[0][0]-centers[1][0], centers[0][1]-centers[1][1]] # Distance between the two shapes 
@@ -249,7 +256,6 @@ def get_image(cap):
     return frame
 
 def display_obstacle(image, start, goal, obstacle):
-    
     cv2.circle(image, start,radius=0, color=(0,255,0), thickness=5)
     for current_goal in goal:
         cv2.circle(image, current_goal,radius=0, color=(0,255,255), thickness=5)
@@ -257,11 +263,16 @@ def display_obstacle(image, start, goal, obstacle):
     return
 
 def display_pos(image, pos, px_to_mm, is_from_camera):
+    if len(pos) != 0:
+        return
+    posa = np.array([pos[0],pos[1]])
+    posa = np.int0(posa/px_to_mm).tolist()
+    print('posa :', posa, type(posa))
     if is_from_camera:
-        if len(pos) != 0:
-            cv2.circle(image, pos/px_to_mm, radius=0, color=(0,255,0), thickness=5)
+        # print(pos/px_to_mm)
+        cv2.circle(image, posa, radius=0, color=(0,255,0), thickness=5)
     else:
-        cv2.circle(image, pos/px_to_mm, radius=0, color=(255,0,0), thickness=5)
+        cv2.circle(image, posa, radius=0, color=(255,0,0), thickness=5)
         
     
     return

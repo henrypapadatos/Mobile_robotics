@@ -147,14 +147,14 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
     # Return the updated state and covariance estimates
     return state_estimate_k, P_k
 
-def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt,verbose = False):
+def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt, verbose = False):
+    print("pos robot is: ", pos_robot)
     
     if verbose: print("y:", pos_robot[1]-goal_pos[1])
     if verbose: print("x:", pos_robot[0]-goal_pos[0])
     
     angle_rad = np.arctan2(pos_robot[1]-goal_pos[1],pos_robot[0]-goal_pos[0])
 
-    if verbose: print("Robot_goal_angle:", math.degrees(angle_rad))
     if verbose: print("Robot_angle:",360-pos_robot[2])
     
     #calculer le delta error angle
@@ -163,6 +163,7 @@ def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt,verbose = False):
     if verbose: print("Error_angle:",error)
     
     #disables the PID regulator if the error is to small 
+    #disables the PID regulator if the error is to small
     #this avoids to always move as we cannot exactly be where we want and
     #the camera is a bit noisy
     # if abs(error) < ERROR_THRESHOLD:
