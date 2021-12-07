@@ -138,6 +138,9 @@ def start(img):
     
     areas = [cv2.contourArea(c) for c in contours]
     max_cont = max(areas)
+    if not areas:
+        cv2.imshow('mask', mask_angle)
+        raise ValueError("Can not read frame")
     
     for cont in contours:
         
