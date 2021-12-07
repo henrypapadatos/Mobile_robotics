@@ -9,6 +9,9 @@ import pyvisgraph as vg
 import numpy as np
 import cv2
 import math
+import six
+import sys
+sys.modules['sklearn.externals.six'] = six
 import mlrose
 
 
