@@ -97,7 +97,7 @@ def obstacles(img):
         epsilon = 0.08 * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
         if(len(approx)>2):
-            cv2.drawContours(img, [approx], -1, (255, 0, 0), 2)
+            # cv2.drawContours(img, [approx], -1, (255, 0, 0), 2)
             corners.append(approx)
             if(len(approx) == 4): # Use rectangle instead of triangle as there only is one 
                 Pix_to_mm = pix_to_mm(approx)
@@ -143,6 +143,8 @@ def start(img):
     contours, hierarchy = cv2.findContours(mask_angle, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     areas = [cv2.contourArea(c) for c in contours]
+    # cv2.imshow('mask', mask_angle)
+    # cv2.waitKey(0)
     
     if not areas:
         cv2.imshow('mask', mask_angle)
@@ -153,7 +155,7 @@ def start(img):
     
     for cont in contours:
         
-        epsilon = 0.1 * cv2.arcLength(cont, True)
+        epsilon = 0.05 * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
         
         if(len(approx)==4 and cv2.contourArea(approx) >= max_cont/2):
@@ -165,7 +167,8 @@ def start(img):
 # --------------------------------------Main Functions-----------------------------------------------
     
 def Init(image):
-     
+    
+    print("test2")
     start_pos = start(image)
     vertexes, px_to_mm, img_obst = obstacles(image)
     goals_pos, img_goals = goals(image)
@@ -201,7 +204,7 @@ def vision(image, px_factor):
     # From contours of red shapes, approximate polygons and obtain corners
     for cont in contours:
         
-        epsilon = 0.08 * cv2.arcLength(cont, True)
+        epsilon = 0.05 * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
         
         if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/3):
@@ -257,7 +260,8 @@ def display_obstacle(image, start, goal, obstacle):
 
 def display_pos(image, pos, px_to_mm, is_from_camera):
     if is_from_camera:
-        cv2.circle(image, pos/px_to_mm, radius=0, color=(0,255,0), thickness=5)
+        if len(pos) != 0:
+            cv2.circle(image, pos/px_to_mm, radius=0, color=(0,255,0), thickness=5)
     else:
         cv2.circle(image, pos/px_to_mm, radius=0, color=(255,0,0), thickness=5)
         
