@@ -70,10 +70,8 @@ def goals(pic):
     for cont in contours:
         
         ((x, y), rayon)=cv2.minEnclosingCircle(cont)
-        goals_loc.append((x,y))
-    
-    goals_loc = np.int0(goals_loc)
-    
+        goals_loc.append(np.array([int(x),int(y)]))
+        
     #draw centers of goals
     for cent in goals_loc:
         cv2.circle(img_goals, cent, 5, (255, 0, 0) , -1)
@@ -159,7 +157,7 @@ def start(img):
         approx = cv2.approxPolyDP(cont, epsilon, True)
         
         if(len(approx)==4 and cv2.contourArea(approx) >= max_cont/2):
-            start = centroid(approx)
+            start = np.array(centroid(approx))
     
     return start
     
