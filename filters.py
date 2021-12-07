@@ -8,11 +8,11 @@ import numpy as np
 import math
 
 MAX_SUM_ERROR = 50
-KP_1 = 0.5
+KP_1 = 2
 KI_1 = 0.0
 KD_1 = 0.0
 DEG_LIM = 30
-SPEED_AVG = 50
+SPEED_AVG = 100
 
 # Description: Extended Kalman Filter example (two-wheeled mobile robot)
 
@@ -154,13 +154,29 @@ def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt, verbose = False):
     
     angle_rad = np.arctan2(goal_pos[1]-pos_robot[1],goal_pos[0]-pos_robot[0])
     
-    angle_robot = 360-pos_robot[2]
+    angle_robot = pos_robot[2]
+    
+    if angle_robot < -180:
+        angle_robot = 360+angle_robot
+    if angle_robot > 180:
+        angle_robot = angle_robot - 360
 
     if verbose: print("Robot_angle:",angle_robot)
     
     angle_goal = math.degrees(angle_rad%(2*np.pi));
+    
+    if angle_goal < -180:
+        angle_goal = 360+angle_goal
+    if angle_goal > 180:
+        angle_goal = angle_goal - 360
+        
     #calculer le delta error angle
-    error = angle_robot+angle_goal
+    error = angle_robot-angle_goal
+    
+    if error < -180:
+        error = 360+error
+    if error > 180:
+        error = error - 360
     
     if verbose: print("angle goal: ", angle_goal)
     
@@ -185,12 +201,12 @@ def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt, verbose = False):
     speed = KP_1 * error + KI_1 * sum_error + KD_1 * ((error - alt_error_pid)/dt)
     
     if abs(error) > DEG_LIM:
-        v_l = speed
-        v_d= - speed
+        v_l = - speed
+        v_d= speed
         if verbose: print("Turning only, speed l and r:",v_l,v_d)
     else:
-        v_l = SPEED_AVG + speed
-        v_d = SPEED_AVG - speed
+        v_l = SPEED_AVG - speed
+        v_d = SPEED_AVG + speed
         if verbose: print("Moving and turning, speed l and r:",v_l,v_d)
     
     if verbose: print("Sum_error, Alt_error_pid:", sum_error,alt_error_pid)
