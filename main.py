@@ -15,21 +15,29 @@ import computer_vision
 import path_planning	
 
 TRESH_DIST = 3 #mm
-CAMERA = 1 # Camera
+CAMERA = 0 # Camera
 
 def main():
          
     try:              
-        cap=cv2.VideoCapture(CAMERA ) # Either 0 or 1, front camera or external cam
+        cap=cv2.VideoCapture(CAMERA) # Either 0 or 1, front camera or external cam
         
         #get the full quality of the camera
         cap.set(3,1920) 
         cap.set(4,1080)
         
-        # we need to wait a bit otherwise the image is yellow 
-        time.sleep(2)
+        print("camera connected")
         frame_init = computer_vision.get_image(cap)
         
+        # we need to wait a bit otherwise the image is yellow 
+        time.sleep(3)
+        
+        print("take the rigth image")
+        frame_init = computer_vision.get_image(cap)
+        
+        frame_init = cv2.cvtColor(frame_init, cv2.COLOR_BGR2RGB)
+        frame_init = cv2.resize(frame_init,None, fx=0.5, fy= 0.5, interpolation = cv2.INTER_CUBIC)
+
         cv2.imshow('frame', frame_init)
         
         cv2.waitKey(0)

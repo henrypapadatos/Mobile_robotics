@@ -227,12 +227,12 @@ def get_image(cap):
         if actual-previous>0.02:
             break
 
-    x = 380 
-    y = 130
-    w = 910
-    h = 850
+    x = 0 
+    y = 300
+    w = 1090
+    h = 1080
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-    #frame = frame[y:y+h, x:x+w]
+    # frame = frame[y:y+h, x:x+w]
     return frame
 
 def display_obstacle(image, start, goal, obstacle):
