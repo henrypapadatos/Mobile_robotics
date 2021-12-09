@@ -91,10 +91,19 @@ def obstacles(img):
     #cv2.drawContours(image=img2, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
     # cv2.imshow('mask obst', mask_obst)
     # cv2.waitKey(0)
+    areas = [cv2.contourArea(c) for c in contours]
+    
+    if not areas:
+        cv2.imshow('mask', mask_obst)
+        cv2.waitKey(0)
+        raise ValueError("Can not read frame")
+        
+    max_cont = max(areas)
+    
     for cont in contours:
         epsilon = 0.08 * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
-        if(len(approx)>2):
+        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/3):
             # cv2.drawContours(img, [approx], -1, (255, 0, 0), 2)
             corners.append(approx)
             if(len(approx) == 4): # Use rectangle instead of triangle as there only is one 
