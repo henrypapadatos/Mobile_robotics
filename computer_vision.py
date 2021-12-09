@@ -10,6 +10,10 @@ import math
 
 import numpy as np
 
+LEN_IN_MM = 113 # lenght of one side of the cube in mm
+SAFETY_FACTOR = 65 # margin so that the robot doesn't hit obstacles 
+POLY_FACTOR_OBST = 0.08 # factor that determines how accurately the approxPolyDP function approximates
+POLY_FACTOR_ROB = 0.05
 # --------------------------------------Secondary Functions-----------------------------------------------
 
 def centroid(vertexes):
@@ -25,7 +29,7 @@ def centroid(vertexes):
 
 def expand(centroid, vertexes, px_factor):
     
-    half_thymio = 65*(1/px_factor) # Thymio's half width - converted from mm to pixels
+    half_thymio = SAFETY_FACTOR*(1/px_factor) # Thymio's half width - converted from mm to pixels
     new_corners = []
     
     for vertex in vertexes:
@@ -101,7 +105,7 @@ def obstacles(img):
     max_cont = max(areas)
     
     for cont in contours:
-        epsilon = 0.08 * cv2.arcLength(cont, True)
+        epsilon = POLY_FACTOR_OBST * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
         if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/3):
             # cv2.drawContours(img, [approx], -1, (255, 0, 0), 2)
@@ -124,7 +128,6 @@ def obstacles(img):
 def pix_to_mm(rectangle):
     
     len_in_px = 0
-    len_in_mm = 113 # lenght of one side of the cube in mm
     
     for corn1 in rectangle:
         for corn2 in rectangle:
@@ -133,7 +136,7 @@ def pix_to_mm(rectangle):
                 if(dist > len_in_px):
                     len_in_px = dist
 
-    px_to_mm = len_in_mm/len_in_px
+    px_to_mm = LEN_IN_MM/len_in_px
     
     return px_to_mm
 
@@ -162,7 +165,7 @@ def start(img):
     
     for cont in contours:
         
-        epsilon = 0.05 * cv2.arcLength(cont, True)
+        epsilon = POLY_FACTOR_ROB * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
         
         if(len(approx)==4 and cv2.contourArea(approx) >= max_cont/2):
@@ -226,7 +229,7 @@ def vision(image, px_factor):
     # From contours of red shapes, approximate polygons and obtain corners
     for cont in contours:
         
-        epsilon = 0.08 * cv2.arcLength(cont, True)
+        epsilon = POLY_FACTOR_ROB * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
         # print(approx)
         
