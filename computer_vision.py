@@ -25,7 +25,7 @@ def centroid(vertexes):
 
 def expand(centroid, vertexes, px_factor):
     
-    half_thymio = 55*(1/px_factor) # Thymio's half width - converted from mm to pixels
+    half_thymio = 65*(1/px_factor) # Thymio's half width - converted from mm to pixels
     new_corners = []
     
     for vertex in vertexes:
@@ -208,13 +208,13 @@ def vision(image, px_factor):
     
     if not areas:
         hidden = True
-        print('Robot not seen by camera1')
+        # print('Robot not seen by camera1')
         return pose_hidden, hidden, mask_angle
         
     max_cont = max(areas)
     # Hidden camera condition
     if len(contours) == 0: 
-        print('Robot not seen by camera2')
+        # print('Robot not seen by camera2')
         hidden = True
         return pose_hidden, hidden, mask_angle
     
@@ -244,7 +244,7 @@ def vision(image, px_factor):
     if square_found == 0 or triangle_found == 0:
         # print(approx)
         hidden = True
-        print('Robot not seen by camera3')
+        # print('Robot not seen by camera3')
         return pose_hidden, hidden, mask_angle
     
     # From corners, get centers
@@ -300,11 +300,11 @@ def display_pos(image, pos, px_to_mm, hidden_cam, is_from_camera):
     if is_from_camera ==1:
         # print(pos/px_to_mm)
         # print("camera sees the robot location in: ", posa)
-        cv2.circle(image, posa, radius=0, color=(0,255,0), thickness=5)
+        cv2.circle(image, posa, radius=0, color=(0,255,0), thickness=15)
     if is_from_camera ==2:
-        cv2.circle(image, posa, radius=0, color=(0,0,0), thickness=5)
+        cv2.circle(image, posa, radius=0, color=(0,0,0), thickness=15)
     else:
-        cv2.circle(image, posa, radius=0, color=(255,0,0), thickness=5)
+        cv2.circle(image, posa, radius=0, color=(255,0,0), thickness=15)
         
     
     return

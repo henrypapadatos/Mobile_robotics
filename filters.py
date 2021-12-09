@@ -11,8 +11,8 @@ MAX_SUM_ERROR = 50
 KP_1 = 2
 KI_1 = 0.0
 KD_1 = 0.0
-DEG_LIM = 30
-SPEED_AVG = 100
+DEG_LIM = 10
+SPEED_AVG = 150
 
 # Description: Extended Kalman Filter example (two-wheeled mobile robot)
 
@@ -24,9 +24,7 @@ A_k_minus_1 = np.array([[1.0,  0,   0],
                        [  0, 1.0,   0],
                        [  0,   0, 1.0]])
 
-# 
-process_noise_v_k_minus_1 = np.array([1.0,1.0,1.00])
-     
+#      
 # State model noise covariance matrix Q_k
 Q_k = np.array([[1.0,   0,   0],
                 [  0, 1.0,   0],
@@ -38,13 +36,10 @@ H_k = np.array([[1.0,  0,   0],
                 [  0,  0, 1.0]])
                          
 # Sensor measurement noise covariance matrix R_k
-R_k = np.array([[1.0,   0,    0],
-                [  0, 1.0,    0],
-                [  0,    0, 1.0]])  
-                 
-# Sensor noise
-sensor_noise_w_k = np.array([0.07,0.07,0.04])
- 
+R_k = np.array([[0.1,   0,    0],
+                [  0, 0.1,    0],
+                [  0,    0, 0.1]])  
+                  
 def getB(yaw, deltak):
     """
     # Author: Addison Sears-Collins
@@ -60,8 +55,8 @@ def getB(yaw, deltak):
     :param yaw: The yaw angle (rotation angle around the z axis) in rad 
     :param deltak: The change in time from time step k-1 to k in sec
     """
-    B = np.array([  [-np.cos(yaw)*deltak, 0],
-                    [np.sin(yaw)*deltak, 0],
+    B = np.array([  [np.cos(np.deg2rad(yaw))*deltak, 0],
+                    [np.sin(np.deg2rad(yaw))*deltak, 0],
                     [0, deltak]])
     return B
  
@@ -97,11 +92,11 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
     # Predict the state estimate at time k based on the state 
     # estimate at time k-1 and the control input applied at time k-1.
     if verbose: print(f'Timestep measurement={z_k_observation_vector}')
+    print('angle du robot', state_estimate_k_minus_1[2])
     state_estimate_k = A_k_minus_1 @ (
             state_estimate_k_minus_1) + (
             getB(state_estimate_k_minus_1[2],dk)) @ (
-            control_vector_k_minus_1) + (
-            process_noise_v_k_minus_1)
+            control_vector_k_minus_1)
                     
     if verbose: print(f'X_est State Estimate Before EKF={state_estimate_k}')
     
@@ -116,8 +111,7 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
         # at time k minus what the measurement model predicted 
         # the sensor measurements would be for the current timestep k.
         measurement_residual_y_k = z_k_observation_vector - (
-                (H_k @ state_estimate_k) + (
-                sensor_noise_w_k))
+                H_k @ state_estimate_k)
      
         if verbose: print(f'Z Measurements={z_k_observation_vector}')
                  
@@ -141,13 +135,14 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
         if verbose: print('THE CAMERA IS HIDDEN')
         P_k = P_k_minus_1
         
+        
     if verbose: print(f'covariance_estimate_t={P_k}')
     if verbose: print()
     # Return the updated state and covariance estimates
     return state_estimate_k, P_k
 
 def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt, verbose = False):
-    print("pos robot is: ", pos_robot)
+    #print("pos robot is: ", pos_robot)
     
     if verbose: print("y:", goal_pos[1]-pos_robot[1])
     if verbose: print("x:", goal_pos[0]-pos_robot[0])
