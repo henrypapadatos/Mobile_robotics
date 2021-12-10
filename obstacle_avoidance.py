@@ -3,15 +3,16 @@ Created on Tue Dec  7 10:04:19 2021
 
 @author: Juliette
 """
-SENS_SCALE = 1200
+SENS_SCALE = 1300
 CST_SCALE = 2
-SPEED_TRH = 150
-AVG_SPEED = 50
+SPEED_TRH = 140
+AVG_SPEED = 70
 
 
 def obstacle_avoidance(horz_prox, speedl, speedr, verbose = False):
-    w_l = [30,  20, -20, -20, -30,  0, 0, 1, 0]
-    w_r = [-30, -20, -20,  20,  30, 0, 0, 0, 1]
+    
+    w_l = [20,  20, -20, -20, -20,  0, 0, 1, 0]
+    w_r = [-22, -22, -22,  22, 22, 0, 0, 0, 1]
 
     x = [0,0,0,0,0,0,0,0,0]
     
