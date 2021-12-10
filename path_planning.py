@@ -19,13 +19,29 @@ class path:
 
     @staticmethod
     def draw(image, start, goal, obstacle):
-        cv2.circle(image, start,radius=0, color=(0,255,0), thickness=5)
+        
+        # cv2.circle(image, start,radius=0, color=(0,255,0), thickness=5)
+
+        # for current_goal in goal:
+        #     cv2.circle(image, current_goal,radius=0, color=(0,255,255), thickness=5) 
+
+        # #draw obstacle
+        # cv2.fillPoly(image, obstacle, color=(0,0,255))
+        
+        
+        shape = np.zeros_like(image, np.uint8);
+        
+        cv2.circle(shape, start,radius=0, color=(0,255,0), thickness=5)
 
         for current_goal in goal:
-            cv2.circle(image, current_goal,radius=0, color=(0,255,255), thickness=5) 
+            cv2.circle(shape, current_goal,radius=0, color=(0,255,255), thickness=5) 
 
         #draw obstacle
-        cv2.fillPoly(image, obstacle, color=(0,0,255))
+        cv2.fillPoly(shape, obstacle, color=(0,0,255))
+        
+        alpha = 0.5
+        mask = shape.astype(bool)
+        image[mask] = cv2.addWeighted(image, alpha, shape, 1 - alpha, 0)[mask]
         
         
     @staticmethod
