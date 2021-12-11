@@ -44,11 +44,13 @@ Y_CROP_BOT = 1080
 # --------------------------------------Secondary Functions-----------------------------------------------
 
 def centroid(vertexes):
-    # Computes the coordinates of the centroid of a polygon given its corners coordinates
+    """
+    Computes the coordinates of the centroid of a polygon given its corners coordinates
     
-    # param vertexes : corners coordinates of polygon
+    param vertexes : corners coordinates of polygon
     
-    # return (x,y) : tuple of coordinates of the centroid of the polygon
+    return (x,y) : tuple of coordinates of the centroid of the polygon
+    """
     
     x_list = [vertex [0][0] for vertex in vertexes]
     y_list = [vertex [0][1] for vertex in vertexes]
@@ -59,13 +61,15 @@ def centroid(vertexes):
     return(x, y)
 
 def expand(centroid, vertexes, px_factor):
-    # Computes the expanded vertexes of a polygon based on the coordinates of its corners and centroid
+    """
+    Computes the expanded vertexes of a polygon based on the coordinates of its corners and centroid
     
-    # param centroid : coordinates of centroid of obstacle 
-    # param vertexes : corners coordinates of obstacle
-    # param px_factor : pixel to millimeter conversion factor
+    param centroid : coordinates of centroid of obstacle 
+    param vertexes : corners coordinates of obstacle
+    param px_factor : pixel to millimeter conversion factor
     
-    # return new_corners : coordinates of expanded corners
+    return new_corners : coordinates of expanded corners
+    """
     
     
     half_thymio = SAFETY_FACTOR*(1/px_factor) # Thymio's half width - converted from mm to pixels
@@ -88,14 +92,16 @@ def expand(centroid, vertexes, px_factor):
     return new_corners
 
 def color_detect(pic, low, high):
-    # Extract color from the image "pic" based on the HSV color range [low-high]
+    """
+    Extract color from the image "pic" based on the HSV color range [low-high]
     
-    # param pic : image on which the color detection is conducted
-    # param low : contains the lower values of the HSV parameters range
-    # param high : contains the higher values of the HSV parameters range
+    param pic : image on which the color detection is conducted
+    param low : contains the lower values of the HSV parameters range
+    param high : contains the higher values of the HSV parameters range
     
-    # return color_img : original image with black pixels except for the color detected
-    # return mask : black and white color filter
+    return color_img : original image with black pixels except for the color detected
+    return mask : black and white color filter
+    """
     
     sigma = (5,5)
     
@@ -110,12 +116,14 @@ def color_detect(pic, low, high):
     return color_img, mask
 
 def goals(pic):
-    # Extract goals from image "pic" and find their centers
+    """
+    Extract goals from image "pic" and find their centers
     
-    # param pic : image captured by the camera
+    param pic : image captured by the camera
     
-    # return goals_loc : coordinates of the centers of the goals
-    # return img_goals : original image with black pixels except for the goals
+    return goals_loc : coordinates of the centers of the goals
+    return img_goals : original image with black pixels except for the goals
+    """
     
     low_green = np.array([GREEN_LOW_H, GREEN_LOW_S, GREEN_LOW_V])
     high_green = np.array([GREEN_HIGH_H, GREEN_HIGH_S, GREEN_HIGH_V])
@@ -136,13 +144,15 @@ def goals(pic):
     return goals_loc, img_goals
 
 def obstacles(img):
-    # Extract obstacles from image "img", approximate them as polygons, find their corners and expand them
+    """
+    Extract obstacles from image "img", approximate them as polygons, find their corners and expand them
     
-    # param pic : image captured by the camera
+    param pic : image captured by the camera
     
-    # return new_corners : coordinates of the expanded obstacles corners
-    # return Pix_to_mm : pixel to millimeter conversion factor
-    # return img_goals : original image with black pixels except for the obstacles
+    return new_corners : coordinates of the expanded obstacles corners
+    return Pix_to_mm : pixel to millimeter conversion factor
+    return img_goals : original image with black pixels except for the obstacles
+    """
     
     low_blue = np.array([BLUE_LOW_H, BLUE_LOW_S, BLUE_LOW_V])
     high_blue = np.array([BLUE_HIGH_H, BLUE_HIGH_S, BLUE_HIGH_V])
@@ -183,11 +193,13 @@ def obstacles(img):
     return new_corners, Pix_to_mm, img_obst
 
 def pix_to_mm(rectangle):
-    # Extract longest side of rectangle and computes pixel to millimeter conversion factor from it
+    """
+    Extract longest side of rectangle and computes pixel to millimeter conversion factor from it
     
-    # param rectangle : coordinates of the corners of the rectangular obstacle
+    param rectangle : coordinates of the corners of the rectangular obstacle
     
-    # return px_to_mm : pixel to millimeter conversion factor
+    return px_to_mm : pixel to millimeter conversion factor
+    """
     
     len_in_px = 0
     
@@ -203,17 +215,17 @@ def pix_to_mm(rectangle):
     return px_to_mm
 
 def start(img):
-    # Extract red shapes on Thymio from image "img" and computes the initial position of the Thymio
+    """
+    Extract red shapes on Thymio from image "img" and computes the initial position of the Thymio
 
-    # param pic : first image captured by the camera
+    param pic : first image captured by the camera
     
-    # return start : coordinates of the starting position of the Thymio
+    return start : coordinates of the starting position of the Thymio
+    """
     
     low_red = np.array([RED_LOW_H, RED_LOW_S, RED_LOW_V]) 
     high_red = np.array([RED_HIGH_H, RED_HIGH_S, RED_HIGH_V])
-    
-    corners = [(0,0), (0,0)]
-    centers = []
+
     start = []
     
     # Extract obstacles from original image through color detection
@@ -246,15 +258,17 @@ def start(img):
 # Functions called in main
     
 def Init(image):
-    # Initialise program by analysing environment: compute starting position of Thymio, expanded vertexes of obstacles
-    # pixel to millimeter conversion factor and centers of goals
+    """
+    Initialise program by analysing environment: compute starting position of Thymio, expanded vertexes of obstacles
+    pixel to millimeter conversion factor and centers of goals
     
-    # param image : first image captured by camera
+    param image : first image captured by camera
     
-    # return start_pos : coordinates of the starting position of the Thymio
-    # return vertexes : coordinates of the expanded obstacles corners
-    # return goals_pos : coordinates of the centers of the goals
-    # return px_to_mm : pixel to millimeter conversion factor
+    return start_pos : coordinates of the starting position of the Thymio
+    return vertexes : coordinates of the expanded obstacles corners
+    return goals_pos : coordinates of the centers of the goals
+    return px_to_mm : pixel to millimeter conversion factor
+    """
     
     start_pos = start(image)
     vertexes, px_to_mm, img_obst = obstacles(image)
@@ -263,15 +277,17 @@ def Init(image):
     return start_pos, vertexes, goals_pos, px_to_mm
 
 def vision(image, px_factor):
-    # Determine pose of robot based on two simple red shapes on its top
-    # One shape is enough for position but a second one is needed to determine the angle
+    """
+    Determine pose of robot based on two simple red shapes on its top
+    One shape is enough for position but a second one is needed to determine the angle
     
-    # param image : image captured by the camera
-    # param px_factor : pixel to millimeter conversion factor
+    param image : image captured by the camera
+    param px_factor : pixel to millimeter conversion factor
     
-    # return pose : numpy array containing the coordinates of the position of the Thymio as well as its orientation
-    # return hidden : boolean which is False when the camera is not hidden and True when hidden (Kalman filter adapts consequently)
-    # return mask_angle : original image with black pixels except for the red shapes on top of the Thymio
+    return pose : numpy array containing the coordinates of the position of the Thymio as well as its orientation
+    return hidden : boolean which is False when the camera is not hidden and True when hidden (Kalman filter adapts consequently)
+    return mask_angle : original image with black pixels except for the red shapes on top of the Thymio
+    """
     
     # HSV code for the red color
     low_red = np.array([RED_LOW_H, RED_LOW_S, RED_LOW_V]) 
@@ -342,11 +358,13 @@ def vision(image, px_factor):
     return pose, hidden, mask_angle
 
 def get_image(cap):
-    # Iterates through the video capture buffer until we extract the most recent frame captured by the camera
+    """
+    Iterates through the video capture buffer until we extract the most recent frame captured by the camera
     
-    # param cap : header to access camera
+    param cap : header to access camera
     
-    # return frame : most recent frame captured by the camera
+    return frame : most recent frame captured by the camera
+    """
     
     while True:
         # Compute the time necessary to read one frame 
@@ -371,13 +389,15 @@ def get_image(cap):
     return frame
 
 def display_obstacle(image, start, goal, obstacle):
-    # Displays the expanded form of the obstacles extracted from the obstacle() function  
-    # Also displays the starting position of the Thymio and the goals centers
+    """
+    Displays the expanded form of the obstacles extracted from the obstacle() function  
+    Also displays the starting position of the Thymio and the goals centers
     
-    # param image : current frame
-    # param start : coordinates of the starting position of the Thymio
-    # param goal : coordinates of the centers of the goals 
-    # param obstacle : coordinates of the expanded corners of the obstacles 
+    param image : current frame
+    param start : coordinates of the starting position of the Thymio
+    param goal : coordinates of the centers of the goals 
+    param obstacle : coordinates of the expanded corners of the obstacles 
+    """
     
     shape = np.zeros_like(image, np.uint8)
     
@@ -392,15 +412,17 @@ def display_obstacle(image, start, goal, obstacle):
     return
 
 def display_pos(image, pos, px_to_mm, hidden_cam, label):
-    # Displays either: the position of the robot as computed by the vision (label = 1)
-    #                  the position of the robot as estimated by the Kalman filter (label = 0)
-    #                  the position of the current goal towards which the robot is going (label = 2)
+    """
+    Displays either: the position of the robot as computed by the vision (label = 1)
+                      the position of the robot as estimated by the Kalman filter (label = 0)
+                      the position of the current goal towards which the robot is going (label = 2)
     
-    # param image : current frame
-    # param pos : coordinates of the position we want to display
-    # param px_to_mm : pixel to millimeter factor
-    # param hidden_cam : boolean for hidden camera condition
-    # param label : determines what position we are displaying 
+    param image : current frame
+    param pos : coordinates of the position we want to display
+    param px_to_mm : pixel to millimeter factor
+    param hidden_cam : boolean for hidden camera condition
+    param label : determines what position we are displaying 
+    """
     
     if hidden_cam: # if camera is hidden, display nothing
         return
@@ -416,6 +438,13 @@ def display_pos(image, pos, px_to_mm, hidden_cam, label):
     return
         
 def display_path(image, optimal_trajectory, px_to_mm):
+    """
+    Display the path on the current frame
+    
+    param image : current frame
+    param optimal_trajectory : position of all the points on the path
+    param px_to_mm : pixel to millimeter factor
+    """
     
     for i in range(len(optimal_trajectory)):
         start = (optimal_trajectory[i]/px_to_mm).astype(int)
