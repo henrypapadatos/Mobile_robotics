@@ -11,12 +11,40 @@ import math
 import numpy as np
 
 LEN_IN_MM = 113 # lenght of one side of the cube in mm
-SAFETY_FACTOR = 65 # margin so that the robot doesn't hit obstacles 
+SAFETY_FACTOR = 55 # margin so that the robot doesn't hit obstacles 
 POLY_FACTOR_OBST = 0.05 # factor that determines how accurately the approxPolyDP function approximates
 POLY_FACTOR_ROB = 0.05
+
+GREEN_LOW_H = 50
+GREEN_HIGH_H = 70
+GREEN_LOW_S = 50
+GREEN_HIGH_S = 255
+GREEN_LOW_V = 50
+GREEN_HIGH_V = 255
+
+BLUE_LOW_H = 0
+BLUE_HIGH_H = 20
+BLUE_LOW_S = 50
+BLUE_HIGH_S = 255
+BLUE_LOW_V = 0
+BLUE_HIGH_V = 255
+
+RED_LOW_H = 115
+RED_HIGH_H = 130
+RED_LOW_S = 50
+RED_HIGH_S = 255
+RED_LOW_V = 50
+RED_HIGH_V = 255
+
 # --------------------------------------Secondary Functions-----------------------------------------------
 
 def centroid(vertexes):
+    # Computes the coordinates of the centroid of a polygon given its corners coordinates
+    
+    # param vertexes : corners coordinates of polygon
+    
+    # return (x,y) : tuple of coordinates of the centroid of the polygon
+    
     x_list = [vertex [0][0] for vertex in vertexes]
     y_list = [vertex [0][1] for vertex in vertexes]
     length = len(vertexes)
@@ -25,76 +53,103 @@ def centroid(vertexes):
     
     return(x, y)
 
-# Expansion
-
 def expand(centroid, vertexes, px_factor):
+    # Computes the expanded vertexes of a polygon based on the coordinates of its corners and centroid
+    
+    # param centroid : coordinates of centroid of obstacle 
+    # param vertexes : corners coordinates of obstacle
+    # param px_factor : pixel to millimeter conversion factor
+    
+    # return new_corners : coordinates of expanded corners
+    
     
     half_thymio = SAFETY_FACTOR*(1/px_factor) # Thymio's half width - converted from mm to pixels
+    if(len(vertexes) == 3): 
+        expansion_dist = half_thymio/np.cos(np.pi/3) # For triangular obstacles
+        
+    else:
+        expansion_dist = math.sqrt(2*half_thymio**2) # For rectangular obstacles
+        
+        
     new_corners = []
     
     for vertex in vertexes:
-        dist = [(vertex[0][0] - centroid[0]), (vertex[0][1] - centroid[1])]
-        angle = np.arctan2(dist[1], dist[0])
-        new_coord = [vertex[0][0] + np.cos(angle)*half_thymio, vertex[0][1] + np.sin(angle)*half_thymio]
+        dist = [(vertex[0][0] - centroid[0]), (vertex[0][1] - centroid[1])] # Distance between centroid and corner
+        angle = np.arctan2(dist[1], dist[0])                                # Angle between centroid and corner
+        new_coord = [vertex[0][0] + np.cos(angle)*expansion_dist, vertex[0][1] + np.sin(angle)*expansion_dist]
         new_corners.append(new_coord)
     
     new_corners = np.int0(new_corners)
     return new_corners
 
 def color_detect(pic, low, high):
+    # Extract color from the image "pic" based on the HSV color range [low-high]
     
-    #cv2.imshow('color detect', pic)
-    #cv2.waitKey(0)
-    image=cv2.blur(pic, (5, 5))
+    # param pic : image on which the color detection is conducted
+    # param low : contains the lower values of the HSV parameters range
+    # param high : contains the higher values of the HSV parameters range
+    
+    # return color_img : original image with black pixels except for the color detected
+    # return mask : black and white color filter
+    
+    sigma = (5,5)
+    
+    image=cv2.blur(pic, sigma)                 # Blurring to get rid of image noise
     image=cv2.cvtColor(pic, cv2.COLOR_RGB2HSV) 
-    #cv2.imshow('color detect', image)
-    #cv2.waitKey(0)
     mask=cv2.inRange(image, low, high)
-    mask=cv2.erode(mask, None, iterations=4)
-    mask=cv2.dilate(mask, None, iterations=4)
-    #cv2.imshow('color detect', mask)
-    #cv2.waitKey(0)
+    mask=cv2.erode(mask, None, iterations=4)    # Processing to have smoother color filter
+    mask=cv2.dilate(mask, None, iterations=4)   
+
     color_img =cv2.bitwise_and(pic, pic, mask=mask)
     
     return color_img, mask
 
 def goals(pic):
+    # Extract goals from image "pic" and find their centers
     
-    low_yellow = np.array([50,50,50])
-    high_yellow = np.array([70,255,255])
+    # param pic : image captured by the camera
+    
+    # return goals_loc : coordinates of the centers of the goals
+    # return img_goals : original image with black pixels except for the goals
+    
+    low_green = np.array([GREEN_LOW_H, GREEN_LOW_S, GREEN_LOW_V])
+    high_green = np.array([GREEN_HIGH_H, GREEN_HIGH_S, GREEN_HIGH_V])
 
     goals_loc = []
     
     # Extract goals from original image through color detection
-    img_goals, mask_goals = color_detect(pic, low_yellow, high_yellow)
+    img_goals, mask_goals = color_detect(pic, low_green, high_green)
 
-    # Extract centers of goals 
     contours=cv2.findContours(mask_goals, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
     
-    for cont in contours:
+    # For each contour found, fit the minimum enclosing circle and extract center
+    for cont in contours: 
         
         ((x, y), rayon)=cv2.minEnclosingCircle(cont)
         goals_loc.append(np.array([int(x),int(y)]))
-        
-    #draw centers of goals
-    for cent in goals_loc:
-        cv2.circle(img_goals, cent, 5, (255, 0, 0) , -1)
     
     return goals_loc, img_goals
 
 def obstacles(img):
+    # Extract obstacles from image "img", approximate them as polygons, find their corners and expand them
     
-    low_blue = np.array([0,50, 0])
-    high_blue = np.array([20,255,255])
+    # param pic : image captured by the camera
+    
+    # return new_corners : coordinates of the expanded obstacles corners
+    # return Pix_to_mm : pixel to millimeter conversion factor
+    # return img_goals : original image with black pixels except for the obstacles
+    
+    low_blue = np.array([BLUE_LOW_H, BLUE_LOW_S, BLUE_LOW_V])
+    high_blue = np.array([BLUE_HIGH_H, BLUE_HIGH_S, BLUE_HIGH_V])
     corners=[]
     new_corners=[]
     centroids=[]
     
+    # Extract obstacles from original image through color detection
     img_obst, mask_obst = color_detect(img, low_blue, high_blue)
     contours, hierarchy = cv2.findContours(mask_obst, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    #cv2.drawContours(image=img2, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
-    # cv2.imshow('mask obst', mask_obst)
-    # cv2.waitKey(0)
+    
+    # Find largest area for noise condition
     areas = [cv2.contourArea(c) for c in contours]
     
     if not areas:
@@ -104,28 +159,30 @@ def obstacles(img):
         
     max_cont = max(areas)
     
+    # For each contour found, approximate it as a polygon and extract its corners
     for cont in contours:
         epsilon = POLY_FACTOR_OBST * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
-        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/3):
-            # cv2.drawContours(img, [approx], -1, (255, 0, 0), 2)
+        
+        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/3): # Condition to get rid of detected noise 
             corners.append(approx)
-            if(len(approx) == 4): # Use rectangle instead of triangle as there only is one 
+            if(len(approx) == 4): # Use rectangle obstacle to find the pixel to millimeter conversion factor
                 Pix_to_mm = pix_to_mm(approx)
     
     # From extracted corners, define middle point of each object and create vertex (by 'expanding' corners)
     
     for i in range(0, len(corners)):
         centroids.append(centroid(corners[i]))
-        #cv2.circle(poly_copy, centroids[i], 5, (255, 0, 0) , -1)# Just to check if the centroids are good
         new_corners.append(expand(centroids[i], corners[i], Pix_to_mm))   # Determine expanded corners (to take into account thymio width)    
-    
-        for corn in new_corners[i]:
-            cv2.circle(img_obst, corn, 3, (255, 0, 0) , -1)
 
     return new_corners, Pix_to_mm, img_obst
 
 def pix_to_mm(rectangle):
+    # Extract longest side of rectangle and computes pixel to millimeter conversion factor from it
+    
+    # param rectangle : coordinates of the corners of the rectangular obstacle
+    
+    # return px_to_mm : pixel to millimeter conversion factor
     
     len_in_px = 0
     
@@ -141,28 +198,34 @@ def pix_to_mm(rectangle):
     return px_to_mm
 
 def start(img):
+    # Extract red shapes on Thymio from image "img" and computes the initial position of the Thymio
+
+    # param pic : first image captured by the camera
     
-    low_red = np.array([115,50,50]) 
-    high_red = np.array([130,255,255])
+    # return start : coordinates of the starting position of the Thymio
+    
+    low_red = np.array([RED_LOW_H, RED_LOW_S, RED_LOW_V]) 
+    high_red = np.array([RED_HIGH_H, RED_HIGH_S, RED_HIGH_V])
     
     corners = [(0,0), (0,0)]
     centers = []
     start = []
     
+    # Extract obstacles from original image through color detection
     img_angle, mask_angle = color_detect(img, low_red, high_red)
     contours, hierarchy = cv2.findContours(mask_angle, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
+    # Find largest area for noise condition    
     areas = [cv2.contourArea(c) for c in contours]
-    # cv2.imshow('mask', mask_angle)
-    # cv2.waitKey(0)
     
     if not areas:
         cv2.imshow('mask', mask_angle)
         cv2.waitKey(0)
         raise ValueError("Can not read frame")
-        
+    
     max_cont = max(areas)
     
+    # For each contour found, approximate it as a polygon and, if it is the red rectangle, extract its centroid
     for cont in contours:
         
         epsilon = POLY_FACTOR_ROB * cv2.arcLength(cont, True)
@@ -175,8 +238,18 @@ def start(img):
     
     
 # --------------------------------------Main Functions-----------------------------------------------
+# Functions called in main
     
 def Init(image):
+    # Initialise program by analysing environment: compute starting position of Thymio, expanded vertexes of obstacles
+    # pixel to millimeter conversion factor and centers of goals
+    
+    # param image : first image captured by camera
+    
+    # return start_pos : coordinates of the starting position of the Thymio
+    # return vertexes : coordinates of the expanded obstacles corners
+    # return goals_pos : coordinates of the centers of the goals
+    # return px_to_mm : pixel to millimeter conversion factor
     
     start_pos = start(image)
     vertexes, px_to_mm, img_obst = obstacles(image)
@@ -185,72 +258,69 @@ def Init(image):
     return start_pos, vertexes, goals_pos, px_to_mm
 
 def vision(image, px_factor):
-    
     # Determine pose of robot based on two simple red shapes on its top
     # One shape is enough for position but a second one is needed to determine the angle
     
-    # HSV code for the red used
-    low_red = np.array([115,50,50]) 
-    high_red = np.array([130,255,255])
+    # param image : image captured by the camera
+    # param px_factor : pixel to millimeter conversion factor
+    
+    # return pose : numpy array containing the coordinates of the position of the Thymio as well as its orientation
+    # return hidden : boolean which is False when the camera is not hidden and True when hidden (Kalman filter adapts consequently)
+    # return mask_angle : original image with black pixels except for the red shapes on top of the Thymio
+    
+    # HSV code for the red color
+    low_red = np.array([RED_LOW_H, RED_LOW_S, RED_LOW_V]) 
+    high_red = np.array([RED_HIGH_H, RED_HIGH_S, RED_HIGH_V])
     
     corners = [(0,0), (0,0)]
     centers = []
     pose_hidden = np.array([0,0,0])
     hidden = False
     
-    # Extract the red from the img given by the camera 
+    # Extract red from the original image through color detection
     img_angle, mask_angle = color_detect(image, low_red, high_red)
     
-    # cv2.imshow('mask', mask_angle)
-    # cv2.waitKey(0)
-    
     contours, hierarchy = cv2.findContours(mask_angle, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    #cv2.drawContours(image=img, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
     
+    # Find largest area for noise condition
     areas = [cv2.contourArea(c) for c in contours]
     
     if not areas:
         hidden = True
-        # print('Robot not seen by camera1')
         return pose_hidden, hidden, mask_angle
         
     max_cont = max(areas)
+    
     # Hidden camera condition
     if len(contours) == 0: 
-        # print('Robot not seen by camera2')
         hidden = True
         return pose_hidden, hidden, mask_angle
     
-    # print("new_measure")
     
     triangle_found=0
     square_found=0
    
-    # From contours of red shapes, approximate polygons and obtain corners
+    # For each contour found, approximate it as a polygon and extract its corners if it is a rectangle/triangle
     for cont in contours:
         
         epsilon = POLY_FACTOR_ROB * cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, epsilon, True)
-        # print(approx)
         
-        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/6):
+        if(len(approx)>2 and cv2.contourArea(approx) >= max_cont/6): # Condition to get rid of detected noise
             if(len(approx)==3):
                 corners[0] = approx
                 triangle_found=1
-                # print('triangle')
+                
             if(len(approx)==4):
                 corners[1] = approx
                 square_found=1
-                # print('rectangle')
-    
-    # if corners[0][0]+corners[0][1]==0 or corners[1][0]+corners[1][1]==0:
+                
+    # Hidden camera condition
     if square_found == 0 or triangle_found == 0:
-        # print(approx)
         hidden = True
-        # print('Robot not seen by camera3')
         return pose_hidden, hidden, mask_angle
     
-    # From corners, get centers
+    # From corners, get centers of rectangle and triangle
     for i in range(0, len(corners)):
         if(len(corners[i]) == 4):
             center_rect = centroid(corners[i])
@@ -262,12 +332,13 @@ def vision(image, px_factor):
     diff = [centers[0][0]-centers[1][0], centers[0][1]-centers[1][1]] # Distance between the two shapes 
     angle = math.degrees(np.arctan2(diff[1], diff[0])%(2*np.pi))
     
-    pose = np.array([x*px_factor, y*px_factor, angle]) # Return pose of robot as an array
+    pose = np.array([x*px_factor, y*px_factor, angle])
     
     return pose, hidden, mask_angle
 
 def get_image(cap):
-
+    # Iterates through the video capture buffer until we extract the most recent frame 
+    
     while True:
         previous = time.time()
         ret, frame = cap.read()
