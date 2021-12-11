@@ -156,7 +156,7 @@ def p_controler(pos_robot, pos_goal, verbose = False):
 
     if verbose: print("Robot_angle:",angle_robot)
     
-    angle_goal = twopi_to_pi(math.degrees(angle_rad%(2*np.pi)))
+    angle_goal = math.degrees(angle_rad)
         
     # Computes the error angle from the angle of the robot in the global 
     # reference frame and the angle between the robot and the goal.
