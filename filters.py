@@ -8,8 +8,7 @@ Created on Sun Nov 28 18:23:37 2021
 import numpy as np
 import math
 
-MAX_SUM_ERROR = 50
-KP_1 = 2
+KP = 2
 DEG_LIM = 10
 SPEED_AVG = 150
 
@@ -21,7 +20,7 @@ def getB(yaw, deltak):
     Calculates and returns the B matrix.
     The control inputs are the forward speed and the
     rotation rate around the z axis.[v,yaw_rate]
-    Expresses how the state of the system [x,y,yaw] changes
+    Expresses how the state of the system changes
     from k-1 to k due to the control commands (i.e. control input). 
     """
     B = np.array([  [np.cos(np.deg2rad(yaw))*deltak, 0],
@@ -46,7 +45,7 @@ def kf(z_k_observation_vector, state_estimate_k_minus_1,
             in [mm,mm,degrees].
         :param control_vector_k_minus_1 The control vector applied at time k-1
             3x1 NumPy Array [v,v,yaw rate] in the global reference frame
-            in [mm/s,mm/s,radians per second].
+            in [mm/s,mm/s,degrees/s)].
         :param P_k_minus_1 The state covariance matrix estimate at time k-1
             3x3 NumPy Array
         :param dk Time interval in seconds
@@ -129,29 +128,47 @@ def kf(z_k_observation_vector, state_estimate_k_minus_1,
     # Return the updated state and covariance estimates
     return state_estimate_k, P_k
 
-# 
-def p_controler(pos_robot, pos_goal, dt, verbose = False):
+
+def p_controler(pos_robot, pos_goal, verbose = False):
+    '''
+    Computes the speed of the robot proportionaly to the error orientation
+    /remaining distance to the goal.
     
+    INPUT
+        :param pos_robot 
+            3x1 NumPy Array [x,y,yaw] in the global reference frame
+            in [mm,mm,degrees].
+        :param pos_goal 
+            3x1 NumPy Array [x,y] in the global reference frame
+            in [mm,mm].
+        :param dt Time interval in seconds
+             
+    OUTPUT
+        :return v_l Left wheel speed: mm/s
+        :return v_r Right wheel speed: mm/s
+    '''
     if verbose: print("y:", pos_goal[1]-pos_robot[1])
     if verbose: print("x:", pos_goal[0]-pos_robot[0])
     
     angle_rad = np.arctan2(pos_goal[1]-pos_robot[1],pos_goal[0]-pos_robot[0])
     
-    angle_robot = pi_to_2pi(pos_robot[2])
+    angle_robot = twopi_to_pi(pos_robot[2])
 
     if verbose: print("Robot_angle:",angle_robot)
     
-    angle_goal = pi_to_2pi(math.degrees(angle_rad%(2*np.pi)))
+    angle_goal = twopi_to_pi(math.degrees(angle_rad%(2*np.pi)))
         
-    # Calculer le delta error angle
-    error = pi_to_2pi(angle_robot-angle_goal)
+    # Computes the error angle from the angle of the robot in the global 
+    # reference frame and the angle between the robot and the goal.
+    error = twopi_to_pi(angle_robot-angle_goal)
     
     if verbose: print("Robot to goal angle: ", angle_goal)
     if verbose: print("Error_angle:",error)
-    	
-    speed = KP_1 * error
     
-    #
+    # Computes a speed proportional to the error
+    speed = KP * error
+    
+    # Only moves forward while turning if the error angle is really small
     if abs(error) > DEG_LIM:
         v_l = - speed
         v_r = speed
@@ -164,7 +181,7 @@ def p_controler(pos_robot, pos_goal, dt, verbose = False):
     return v_l, v_r
 
 
-def pi_to_2pi(angle):
+def twopi_to_pi(angle):
     '''
     Converts 0-pi angles to 0-2pi
     '''
