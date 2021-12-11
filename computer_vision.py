@@ -12,7 +12,7 @@ import numpy as np
 
 LEN_IN_MM = 113 # lenght of one side of the cube in mm
 SAFETY_FACTOR = 65 # margin so that the robot doesn't hit obstacles 
-POLY_FACTOR_OBST = 0.08 # factor that determines how accurately the approxPolyDP function approximates
+POLY_FACTOR_OBST = 0.05 # factor that determines how accurately the approxPolyDP function approximates
 POLY_FACTOR_ROB = 0.05
 # --------------------------------------Secondary Functions-----------------------------------------------
 
@@ -84,7 +84,7 @@ def goals(pic):
 
 def obstacles(img):
     
-    low_blue = np.array([5,50,40])
+    low_blue = np.array([0,50, 0])
     high_blue = np.array([20,255,255])
     corners=[]
     new_corners=[]
