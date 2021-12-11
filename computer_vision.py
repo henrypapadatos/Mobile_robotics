@@ -36,6 +36,11 @@ RED_HIGH_S = 255
 RED_LOW_V = 50
 RED_HIGH_V = 255
 
+X_CROP_LEFT = 200
+X_CROP_RIGHT = 1400
+Y_CROP_TOP = 0
+Y_CROP_BOT = 1080
+
 # --------------------------------------Secondary Functions-----------------------------------------------
 
 def centroid(vertexes):
@@ -337,28 +342,42 @@ def vision(image, px_factor):
     return pose, hidden, mask_angle
 
 def get_image(cap):
-    # Iterates through the video capture buffer until we extract the most recent frame 
+    # Iterates through the video capture buffer until we extract the most recent frame captured by the camera
+    
+    # param cap : header to access camera
+    
+    # return frame : most recent frame captured by the camera
     
     while True:
-        previous = time.time()
+        # Compute the time necessary to read one frame 
+        previous = time.time() 
         ret, frame = cap.read()
         actual = time.time()
         
         if not ret:
             raise ValueError("Can not read frame")
         
+        # If the time taken to read one frame is higher than 20ms, the frame was just captured and not taken from the buffer
         if actual-previous>0.02:
             break
 
-    x = 200 
-    y = 0
-    w = 1400
-    h = 1080
-    #frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    x = X_CROP_LEFT
+    y = Y_CROP_TOP
+    w = X_CROP_RIGHT
+    h = Y_CROP_BOT
+    
+    # Crop frame to fit the map 
     frame = frame[y:y+h, x:x+w]
     return frame
 
 def display_obstacle(image, start, goal, obstacle):
+    # Displays the expanded form of the obstacles extracted from the obstacle() function  
+    # Also displays the starting position of the Thymio and the goals centers
+    
+    # param image : current frame
+    # param start : coordinates of the starting position of the Thymio
+    # param goal : coordinates of the centers of the goals 
+    # param obstacle : coordinates of the expanded corners of the obstacles 
     
     shape = np.zeros_like(image, np.uint8)
     
@@ -372,22 +391,28 @@ def display_obstacle(image, start, goal, obstacle):
     image[mask] = cv2.addWeighted(image, alpha, shape, 1 - alpha, 0)[mask]
     return
 
-def display_pos(image, pos, px_to_mm, hidden_cam, is_from_camera):
-    if hidden_cam:
+def display_pos(image, pos, px_to_mm, hidden_cam, label):
+    # Displays either: the position of the robot as computed by the vision (label = 1)
+    #                  the position of the robot as estimated by the Kalman filter (label = 0)
+    #                  the position of the current goal towards which the robot is going (label = 2)
+    
+    # param image : current frame
+    # param pos : coordinates of the position we want to display
+    # param px_to_mm : pixel to millimeter factor
+    # param hidden_cam : boolean for hidden camera condition
+    # param label : determines what position we are displaying 
+    
+    if hidden_cam: # if camera is hidden, display nothing
         return
     posa = np.array([pos[0],pos[1]])
     posa = np.int0(posa/px_to_mm).tolist()
-    # print('posa :', posa, type(posa))
-    if is_from_camera ==1:
-        # print(pos/px_to_mm)
-        # print("camera sees the robot location in: ", posa)
+    if label ==1:
         cv2.circle(image, posa, radius=0, color=(0,255,0), thickness=15)
-    if is_from_camera ==2:
+    if label ==2:
         cv2.circle(image, posa, radius=0, color=(0,0,0), thickness=15)
     else:
         cv2.circle(image, posa, radius=0, color=(255,0,0), thickness=15)
         
-    
     return
         
 
