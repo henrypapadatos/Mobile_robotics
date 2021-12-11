@@ -3,96 +3,85 @@
 Created on Sun Nov 28 18:23:37 2021
 
 @author: Aitana Waelbroeck Boix
+
 """
 import numpy as np
 import math
 
 MAX_SUM_ERROR = 50
 KP_1 = 2
-KI_1 = 0.0
-KD_1 = 0.0
 DEG_LIM = 10
 SPEED_AVG = 150
 
-# Description: Extended Kalman Filter example (two-wheeled mobile robot)
-
 # Supress scientific notation when printing NumPy arrays
 np.set_printoptions(precision=3,suppress=True)
- 
-# A matrix
-A_k_minus_1 = np.array([[1.0,  0,   0],
-                       [  0, 1.0,   0],
-                       [  0,   0, 1.0]])
-
-#      
-# State model noise covariance matrix Q_k
-Q_k = np.array([[1.0,   0,   0],
-                [  0, 1.0,   0],
-                [  0,   0, 1.0]])
-                 
-# Measurement matrix H_k
-H_k = np.array([[1.0,  0,   0],
-                [  0,1.0,   0],
-                [  0,  0, 1.0]])
-                         
-# Sensor measurement noise covariance matrix R_k
-R_k = np.array([[0.1,   0,    0],
-                [  0, 0.1,    0],
-                [  0,    0, 0.1]])  
                   
 def getB(yaw, deltak):
     """
-    # Author: Addison Sears-Collins
-    # https://automaticaddison.com
-    Calculates and returns the B matrix
-    3x2 matix -> number of states x number of control inputs
+    Calculates and returns the B matrix.
     The control inputs are the forward speed and the
-    rotation rate around the z axis from the x-axis in the 
-    counterclockwise direction.
-    [v,yaw_rate]
+    rotation rate around the z axis.[v,yaw_rate]
     Expresses how the state of the system [x,y,yaw] changes
-    from k-1 to k due to the control commands (i.e. control input).
-    :param yaw: The yaw angle (rotation angle around the z axis) in rad 
-    :param deltak: The change in time from time step k-1 to k in sec
+    from k-1 to k due to the control commands (i.e. control input). 
     """
     B = np.array([  [np.cos(np.deg2rad(yaw))*deltak, 0],
                     [np.sin(np.deg2rad(yaw))*deltak, 0],
                     [0, deltak]])
     return B
  
-def ekf(z_k_observation_vector, state_estimate_k_minus_1, 
+def kf(z_k_observation_vector, state_estimate_k_minus_1, 
         control_vector_k_minus_1, P_k_minus_1, dk, hidden_cam, verbose = False):
     """
-    # Author: Addison Sears-Collins
-    # https://automaticaddison.com
-    Extended Kalman Filter. Fuses noisy sensor measurement to 
+    Modified from Addison Sears-Collins: https://automaticaddison.com
+    
+    Kalman Filter. Fuses noisy sensor measurement to 
     create an optimal estimate of the state of the robotic system.
          
     INPUT
         :param z_k_observation_vector The observation from the Odometry
             3x1 NumPy Array [x,y,yaw] in the global reference frame
-            in [meters,meters,radians].
+            in [mm,mm,degrees].
         :param state_estimate_k_minus_1 The state estimate at time k-1
             3x1 NumPy Array [x,y,yaw] in the global reference frame
-            in [meters,meters,radians].
+            in [mm,mm,degrees].
         :param control_vector_k_minus_1 The control vector applied at time k-1
             3x1 NumPy Array [v,v,yaw rate] in the global reference frame
-            in [meters per second,meters per second,radians per second].
+            in [mm/s,mm/s,radians per second].
         :param P_k_minus_1 The state covariance matrix estimate at time k-1
             3x3 NumPy Array
         :param dk Time interval in seconds
              
     OUTPUT
         :return state_estimate_k near-optimal state estimate at time k  
-            3x1 NumPy Array ---> [meters,meters,radians]
+            3x1 NumPy Array ---> [mm,mm,degrees]
         :return P_k state covariance_estimate for time k
             3x3 NumPy Array                 
     """
+    # A matrix
+    A_k_minus_1 = np.array([[1.0,  0,   0],
+                           [  0, 1.0,   0],
+                           [  0,   0, 1.0]])
+
+    # State model noise covariance matrix Q_k
+    Q_k = np.array([[1.0,   0,   0],
+                    [  0, 1.0,   0],
+                    [  0,   0, 1.0]])
+                     
+    # Measurement matrix H_k
+    H_k = np.array([[1.0,  0,   0],
+                    [  0,1.0,   0],
+                    [  0,  0, 1.0]])
+                             
+    # Sensor measurement noise covariance matrix R_k
+    R_k = np.array([[0.1,   0,    0],
+                    [  0, 0.1,    0],
+                    [  0,    0, 0.1]])  
+    
     ######################### Predict #############################
     # Predict the state estimate at time k based on the state 
     # estimate at time k-1 and the control input applied at time k-1.
     if verbose: print(f'Timestep measurement={z_k_observation_vector}')
-    print('angle du robot', state_estimate_k_minus_1[2])
+
     state_estimate_k = A_k_minus_1 @ (
             state_estimate_k_minus_1) + (
             getB(state_estimate_k_minus_1[2],dk)) @ (
@@ -118,9 +107,7 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
         # Calculate the measurement residual covariance
         S_k = H_k @ P_k @ H_k.T + R_k
              
-        # Calculate the near-optimal Kalman gain
-        # We use pseudoinverse since some of the matrices might be
-        # non-square or singular.
+        # Calculate the Kalman gain
         K_k = P_k @ H_k.T @ np.linalg.pinv(S_k)
              
         # Calculate an updated state estimate for time k
@@ -129,7 +116,7 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
         # Update the state covariance estimate for time k
         P_k = P_k - (K_k @ H_k @ P_k)
          
-        # Print the best (near-optimal) estimate of the current state of the robot
+        # Print the best estimate of the current state of the robot
         if verbose: print(f'X_est State Estimate After EKF={state_estimate_k}')
     else:
         if verbose: print('THE CAMERA IS HIDDEN')
@@ -138,87 +125,53 @@ def ekf(z_k_observation_vector, state_estimate_k_minus_1,
         
     if verbose: print(f'covariance_estimate_t={P_k}')
     if verbose: print()
+    
     # Return the updated state and covariance estimates
     return state_estimate_k, P_k
 
-def pid(pos_robot, goal_pos, sum_error, alt_error_pid,dt, verbose = False):
-    #print("pos robot is: ", pos_robot)
+# 
+def p_controler(pos_robot, pos_goal, dt, verbose = False):
     
-    if verbose: print("y:", goal_pos[1]-pos_robot[1])
-    if verbose: print("x:", goal_pos[0]-pos_robot[0])
+    if verbose: print("y:", pos_goal[1]-pos_robot[1])
+    if verbose: print("x:", pos_goal[0]-pos_robot[0])
     
-    angle_rad = np.arctan2(goal_pos[1]-pos_robot[1],goal_pos[0]-pos_robot[0])
+    angle_rad = np.arctan2(pos_goal[1]-pos_robot[1],pos_goal[0]-pos_robot[0])
     
-    angle_robot = pos_robot[2]
-    
-    if angle_robot < -180:
-        angle_robot = 360+angle_robot
-    if angle_robot > 180:
-        angle_robot = angle_robot - 360
+    angle_robot = pi_to_2pi(pos_robot[2])
 
     if verbose: print("Robot_angle:",angle_robot)
     
-    angle_goal = math.degrees(angle_rad%(2*np.pi));
-    
-    if angle_goal < -180:
-        angle_goal = 360+angle_goal
-    if angle_goal > 180:
-        angle_goal = angle_goal - 360
+    angle_goal = pi_to_2pi(math.degrees(angle_rad%(2*np.pi)))
         
-    #calculer le delta error angle
-    error = angle_robot-angle_goal
+    # Calculer le delta error angle
+    error = pi_to_2pi(angle_robot-angle_goal)
     
-    if error < -180:
-        error = 360+error
-    if error > 180:
-        error = error - 360
-    
-    if verbose: print("angle goal: ", angle_goal)
-    
+    if verbose: print("Robot to goal angle: ", angle_goal)
     if verbose: print("Error_angle:",error)
-    
-    #disables the PID regulator if the error is to small 
-    #disables the PID regulator if the error is to small
-    #this avoids to always move as we cannot exactly be where we want and
-    #the camera is a bit noisy
-    # if abs(error) < ERROR_THRESHOLD:
-    #     return 0
-    
-    sum_error = sum_error + error
-    
-    #we set a maximum and a minimum for the sum to avoid an uncontrolled growth
-    if sum_error > MAX_SUM_ERROR:
-        sum_error = MAX_SUM_ERROR
-    elif sum_error < -MAX_SUM_ERROR:
-        sum_error = -MAX_SUM_ERROR
     	
+    speed = KP_1 * error
     
-    speed = KP_1 * error + KI_1 * sum_error + KD_1 * ((error - alt_error_pid)/dt)
-    
+    #
     if abs(error) > DEG_LIM:
         v_l = - speed
-        v_d= speed
-        if verbose: print("Turning only, speed l and r:",v_l,v_d)
+        v_r = speed
+        if verbose: print("Turning only, speed l and r:",v_l,v_r)
     else:
         v_l = SPEED_AVG - speed
-        v_d = SPEED_AVG + speed
-        if verbose: print("Moving and turning, speed l and r:",v_l,v_d)
+        v_r = SPEED_AVG + speed
+        if verbose: print("Moving and turning, speed l and r:",v_l,v_r)
     
-    if verbose: print("Sum_error, Alt_error_pid:", sum_error,alt_error_pid)
+    return v_l, v_r
+
+
+def pi_to_2pi(angle):
+    '''
+    Converts 0-pi angles to 0-2pi
+    '''
+    if angle < -180:
+        angle = 360 + angle
+    if angle >  180:
+        angle = angle - 360
     
-    return sum_error, error, v_l, v_d
+    return angle
 
-
-###### How to call PID ######
-
-# def main ():
-#     sum_error = 0 
-#     alt_error_pid = 0 
-#     pos_robot= [2,1,300]
-#     goal_pos = [6,3]
-
-#     speed,sum_error, alt_error_pid, v_l,v_d = pid(pos_robot,goal_pos,sum_error, alt_error_pid)
-
-# main()
-
-###############################
