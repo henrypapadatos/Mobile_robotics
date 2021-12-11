@@ -415,4 +415,13 @@ def display_pos(image, pos, px_to_mm, hidden_cam, label):
         
     return
         
-
+def display_path(image, optimal_trajectory, px_to_mm):
+    
+    for i in range(len(optimal_trajectory)):
+        start = (optimal_trajectory[i]/px_to_mm).astype(int)
+        if i == len(optimal_trajectory)-1:
+            stop = (optimal_trajectory[0]/px_to_mm).astype(int)
+        else:
+            stop = (optimal_trajectory[i+1]/px_to_mm).astype(int)
+            
+        image = cv2.line(image,start, stop, color=(255, 153, 255), thickness = 1)

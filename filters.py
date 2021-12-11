@@ -8,7 +8,7 @@ Created on Sun Nov 28 18:23:37 2021
 import numpy as np
 import math
 
-KP = 2
+KP = 3
 DEG_LIM = 10
 SPEED_AVG = 150
 
