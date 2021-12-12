@@ -17,11 +17,18 @@ np.set_printoptions(precision=3,suppress=True)
                   
 def getB(yaw, deltak):
     """
-    Calculates and returns the B matrix.
+    Calculates the B matrix which expresses how the state of the system changes
+    from k-1 to k due to the control commands (i.e. control input). 
     The control inputs are the forward speed and the
     rotation rate around the z axis.[v,yaw_rate]
-    Expresses how the state of the system changes
-    from k-1 to k due to the control commands (i.e. control input). 
+    
+    INPUT
+        :param yaw The angle of the robot in the global reference frame
+        in [degrees].
+        :param deltak Time interval in seconds
+            
+    OUTPUT
+        :returns B Matrix (nb_of_state_inputs x nb_control_inputs): (3x2)
     """
     B = np.array([  [np.cos(np.deg2rad(yaw))*deltak, 0],
                     [np.sin(np.deg2rad(yaw))*deltak, 0],
@@ -37,7 +44,7 @@ def kf(z_k_observation_vector, state_estimate_k_minus_1,
     create an optimal estimate of the state of the robotic system.
          
     INPUT
-        :param z_k_observation_vector The observation from the Odometry
+        :param z_k_observation_vector The observation from the odometry
             3x1 NumPy Array [x,y,yaw] in the global reference frame
             in [mm,mm,degrees].
         :param state_estimate_k_minus_1 The state estimate at time k-1
@@ -49,6 +56,7 @@ def kf(z_k_observation_vector, state_estimate_k_minus_1,
         :param P_k_minus_1 The state covariance matrix estimate at time k-1
             3x3 NumPy Array
         :param dk Time interval in seconds
+        :param hidden_cam boolean which is True if the camera is hidden
              
     OUTPUT
         :return state_estimate_k near-optimal state estimate at time k  
@@ -141,7 +149,6 @@ def p_controler(pos_robot, pos_goal, verbose = False):
         :param pos_goal 
             3x1 NumPy Array [x,y] in the global reference frame
             in [mm,mm].
-        :param dt Time interval in seconds
              
     OUTPUT
         :return v_l Left wheel speed: mm/s
@@ -183,7 +190,14 @@ def p_controler(pos_robot, pos_goal, verbose = False):
 
 def twopi_to_pi(angle):
     '''
-    Converts 0-pi angles to 0-2pi
+    Converts 0-2pi angles to 0-pi
+    
+    INPUT
+        :param angle in degrees [0,2pi]
+
+    OUTPUT
+        :return angle in degrees[0,pi]
+
     '''
     if angle < -180:
         angle = 360 + angle
