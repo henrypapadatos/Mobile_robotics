@@ -94,7 +94,7 @@ def kf(z_k_observation_vector, state_estimate_k_minus_1,
             getB(state_estimate_k_minus_1[2],dk)) @ (
             control_vector_k_minus_1)
                     
-    if verbose: print(f'X_est State Estimate Before EKF={state_estimate_k}')
+    if verbose: print(f'X_est State Estimate Before KF={state_estimate_k}')
     
     if not hidden_cam:
         # Predict the state covariance estimate based on the previous
@@ -124,7 +124,7 @@ def kf(z_k_observation_vector, state_estimate_k_minus_1,
         P_k = P_k - (K_k @ H_k @ P_k)
          
         # Print the best estimate of the current state of the robot
-        if verbose: print(f'X_est State Estimate After EKF={state_estimate_k}')
+        if verbose: print(f'X_est State Estimate After KF={state_estimate_k}')
     else:
         if verbose: print('THE CAMERA IS HIDDEN')
         P_k = P_k_minus_1
