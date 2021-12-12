@@ -190,13 +190,13 @@ def p_controler(pos_robot, pos_goal, verbose = False):
 
 def twopi_to_pi(angle):
     '''
-    Converts 0-2pi angles to 0-pi
+    Converts [0,2pi] angles to [-pi,pi]
     
     INPUT
         :param angle in degrees [0,2pi]
 
     OUTPUT
-        :return angle in degrees[0,pi]
+        :return angle in degrees[-pi,pi]
 
     '''
     if angle < -180:
