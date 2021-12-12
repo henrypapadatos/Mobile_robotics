@@ -108,9 +108,7 @@ def kf(z_k_observation_vector, state_estimate_k_minus_1,
         # the sensor measurements would be for the current timestep k.
         measurement_residual_y_k = z_k_observation_vector - (
                 H_k @ state_estimate_k)
-     
-        if verbose: print(f'Z Measurements={z_k_observation_vector}')
-                 
+                      
         # Calculate the measurement residual covariance
         S_k = H_k @ P_k @ H_k.T + R_k
              
