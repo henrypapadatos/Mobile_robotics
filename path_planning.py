@@ -14,10 +14,9 @@ import sys
 sys.modules['sklearn.externals.six'] = six
 import mlrose
     
- 
-def Astar(start, goal, obstacle,draw = False, image = None):
+def visibility_graph(start, goal, obstacle,draw = False, image = None):
     """
-    Effectuate the Astar algorithm to find the shortest distance 
+    Use visibility graph and Djikstra algorithm to find the shortest
     and its corresponding path between each pair of goals.
     This library is used: https://github.com/TaipanRex/pyvisgraph
     
@@ -101,7 +100,7 @@ def tsp(dist_list, path_list, length, draw = False, image = None):
     optimal_trajectory=[]
 
     # Initialize fitness function object using dist_list (dist_list is the length of the 
-    # pairwise shortest path computed in Astar function)
+    # pairwise shortest path computed in visibility_graph function)
     fitness_dists = mlrose.TravellingSales(distances = dist_list)
     # Define optimization problem object
     problem_fit2 = mlrose.TSPOpt(length, fitness_fn = fitness_dists, maximize = False)
@@ -163,7 +162,7 @@ def get_optimal_path(start, goal, obstacle,conversion_factor = 1, draw = False, 
     
     return optimal_trajectory: list of points that compose the optimal path (expressed in mm coordinates)
     """
-    dist_list, path_list = Astar(start, goal, obstacle)
+    dist_list, path_list = visibility_graph(start, goal, obstacle)
     
     optimal_path = tsp(dist_list, path_list, len(goal)+1, draw, image)
     
